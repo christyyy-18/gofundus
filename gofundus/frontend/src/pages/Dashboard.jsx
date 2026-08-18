@@ -30,6 +30,7 @@ const Dashboard = () => {
 
   const getHomeImage = (inst) => {
     if (inst.image_url) return inst.image_url;
+    if (Number(inst.gps_lat) >= 20) return '/images/hong_kong_home.svg';
     if (inst.name?.includes('Mampong')) return '/images/mampong_home.png';
     if (inst.name?.includes('King Jesus')) return '/images/king_jesus_home.png';
     if (inst.name?.includes('Cherubs')) return '/images/cherubs_home.png';

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Hong Kong residential care home</title>
+  <desc id="desc">A warm illustrated residential care home beneath the Hong Kong skyline.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f4c5c"/>
+      <stop offset="1" stop-color="#f4a261"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#16697a"/>
+      <stop offset="1" stop-color="#0b3d4a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="760" fill="url(#sky)"/>
+  <circle cx="930" cy="150" r="72" fill="#ffe8b6" opacity=".9"/>
+  <path d="M0 505 C190 470 300 490 455 455 C630 415 820 470 1200 425 V760 H0Z" fill="url(#water)"/>
+  <g fill="#123b4a" opacity=".95">
+    <path d="M80 480V250h88v230zM182 480V185h72v295zM270 480V290h96v190zM386 480V150h82v330zM490 480V235h110v245zM620 480V115h78v365zM718 480V220h125v260zM863 480V165h88v315zM970 480V255h120v225zM1102 480V205h58v275z"/>
+  </g>
+  <g fill="#f8d49a" opacity=".9">
+    <path d="M101 280h18v22h-18zM135 280h18v22h-18zM202 220h14v20h-14zM226 220h14v20h-14zM414 190h16v24h-16zM442 190h16v24h-16zM646 155h14v20h-14zM670 155h14v20h-14zM748 260h20v24h-20zM782 260h20v24h-20zM893 205h16v22h-16zM920 205h16v22h-16zM1010 300h20v24h-20zM1045 300h20v24h-20z"/>
+  </g>
+  <g transform="translate(260 330)">
+    <rect x="0" y="150" width="650" height="205" rx="8" fill="#f6f1e9"/>
+    <path d="M-28 155L325 0l353 155z" fill="#d1495b"/>
+    <path d="M34 152h582" stroke="#fff5df" stroke-width="12" opacity=".7"/>
+    <rect x="273" y="242" width="105" height="113" rx="5" fill="#165b67"/>
+    <circle cx="326" cy="298" r="9" fill="#f6c85f"/>
+    <g fill="#3c8d98">
+      <rect x="55" y="205" width="105" height="75" rx="4"/><rect x="202" y="205" width="105" height="75" rx="4"/><rect x="426" y="205" width="105" height="75" rx="4"/><rect x="550" y="205" width="55" height="75" rx="4"/>
+    </g>
+    <g fill="#f9e4b7"><path d="M74 227h67v9H74zM74 247h67v9H74zM221 227h67v9h-67zM221 247h67v9h-67zM445 227h67v9h-67zM445 247h67v9h-67zM563 227h28v9h-28zM563 247h28v9h-28z"/></g>
+    <path d="M40 355h570" stroke="#d1495b" stroke-width="12"/>
+  </g>
+  <g fill="#f6c85f"><circle cx="190" cy="574" r="18"/><circle cx="1015" cy="580" r="22"/><circle cx="110" cy="635" r="12"/></g>
+  <g fill="#1d7a62"><path d="M190 590c-8-60-35-86-73-105 8 45 27 77 73 105zM190 590c8-56 33-82 68-98-10 43-27 72-68 98zM1015 602c-10-65-40-96-84-115 10 49 32 84 84 115zM1015 602c10-57 35-87 76-105-10 47-30 78-76 105z"/></g>
+  <text x="600" y="710" text-anchor="middle" fill="#fff5df" font-family="Georgia, serif" font-size="28" letter-spacing="2">CARE ACROSS THE HARBOUR</text>
+</svg>
