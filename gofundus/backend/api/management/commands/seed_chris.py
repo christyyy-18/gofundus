@@ -5,6 +5,7 @@ Run: python manage.py seed_chris
 """
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
+from django.core.management import call_command
 from datetime import date, timedelta
 
 from api.models import UserProfile, Donor, Institution, InterestStatement, Match, Notification
@@ -133,6 +134,10 @@ class Command(BaseCommand):
         for msg in msgs:
             Notification.objects.get_or_create(donor=donor, message=msg)
         self.stdout.write(f"  Notifications: {len(msgs)}")
+
+        # Replace legacy demo institutions and their demo matches with the
+        # verified Ashanti Region institution dataset.
+        call_command("sync_ashanti_institutions")
 
         self.stdout.write(self.style.SUCCESS("\nDone. Login: chris / chris123 | admin / GoFundUs@2026"))
 

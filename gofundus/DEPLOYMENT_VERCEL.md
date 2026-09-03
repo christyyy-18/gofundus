@@ -57,3 +57,13 @@ vercel --prod
 - [ ] Visit `https://<your-frontend-project>.vercel.app` — test Login (`chris` / `chris123` or `admin` / `GoFundUs@2026`).
 - [ ] Test AI Matchmaker query on the live frontend.
 - [ ] Verify Support ticket submission and Paystack donation modal.
+
+## 4. Institution Data Synchronization
+
+The Hong Kong test files and synthetic institution generator have been removed. To update the admin database with the verified Ashanti Region dataset, run from `backend`:
+
+```bash
+python manage.py sync_ashanti_institutions
+```
+
+This replaces all existing institution records, including test records. The current records are limited to organizations documented by [Light for Children](https://www.lightforchildren.com/orphanages) and [SOS Children's Villages](https://www.sos-childrensvillages.org/where-we-help/africa/ghana/kumasi). Children counts, funding gaps, emails, and phone numbers are left unconfirmed until supplied by the institutions or Ghana social welfare authorities.
