@@ -11,7 +11,7 @@ GoFundUs can be hosted on Vercel with two separate linked projects (Frontend + B
 2. Under **Root Directory**, click **Edit** and select **`backend`**.
 3. Framework Preset: **Other**.
 4. Add the following **Environment Variables**:
-   - `DATABASE_URL`: `postgresql://neondb_owner:npg_pIkHhejYRK50@ep-gentle-glade-ay4e88tj-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+   - `DATABASE_URL`: `<your-Neon-PostgreSQL-connection-string>`
    - `DJANGO_SECRET_KEY`: `<your-production-secret-key>`
    - `DJANGO_DEBUG`: `False`
    - `DJANGO_ALLOWED_HOSTS`: `.vercel.app`
