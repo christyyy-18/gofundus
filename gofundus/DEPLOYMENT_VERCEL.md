@@ -60,10 +60,10 @@ vercel --prod
 
 ## 4. Institution Data Synchronization
 
-The Hong Kong test files and synthetic institution generator have been removed. To update the admin database with the verified Ashanti Region dataset, run from `backend`:
+The Hong Kong test files and synthetic institution generator have been removed. To update the admin database with the currently verified Ghana dataset, run from `backend`:
 
 ```bash
 python manage.py sync_ashanti_institutions
 ```
 
-This replaces all existing institution records, including test records. The current records are limited to organizations documented by [Light for Children](https://www.lightforchildren.com/orphanages) and [SOS Children's Villages](https://www.sos-childrensvillages.org/where-we-help/africa/ghana/kumasi). Children counts, funding gaps, emails, and phone numbers are left unconfirmed until supplied by the institutions or Ghana social welfare authorities.
+This replaces all existing institution records, including test records. The current records are limited to organizations documented by [Light for Children](https://www.lightforchildren.com/orphanages), [SOS Children's Villages](https://www.sos-childrensvillages.org/where-we-help/africa/ghana/kumasi), [Kumasi Children's Home](https://kumasichildrenshome.mogcsp.gov.gh/), and [Osu Children's Home](https://osuchildrenshome.gov.gh/). The UNICEF/MoGCSP mapping identified 115 homes nationally in 2016; this fixture is not presented as a complete current registry. Children counts, funding gaps, emails, and phone numbers are left unconfirmed until supplied by the institutions or Ghana social welfare authorities.

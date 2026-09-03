@@ -7,7 +7,7 @@ from api.models import Institution
 # Publicly documented organizations only. Operational figures are intentionally
 # left blank or zero until confirmed by the institution or Ghana's social
 # welfare authorities.
-ASHANTI_INSTITUTIONS = [
+GHANA_INSTITUTIONS = [
     {
         "name": "Mampong Babies Home",
         "district": "Mampong Municipal",
@@ -41,16 +41,38 @@ ASHANTI_INSTITUTIONS = [
             "healthcare, family strengthening, and preparation for independent living."
         ),
     },
+    {
+        "name": "Kumasi Children's Home",
+        "district": "Kumasi Metropolitan",
+        "address": "Kumasi, Ashanti Region, Ghana",
+        "gps_lat": 6.6885,
+        "gps_lng": -1.6244,
+        "cause_description": (
+            "State-run residential home providing care, shelter, protection, and education "
+            "for children in need of care and protection."
+        ),
+    },
+    {
+        "name": "Osu Children's Home",
+        "district": "Osu Klottey",
+        "address": "Osu, Greater Accra Region, Ghana",
+        "gps_lat": 5.5560,
+        "gps_lng": -0.1820,
+        "cause_description": (
+            "Government-supported residential home providing care and protection for children "
+            "in need of care and support."
+        ),
+    },
 ]
 
 
 class Command(BaseCommand):
-    help = "Replace test institution data with publicly documented Ashanti Region institutions."
+    help = "Replace test institution data with publicly documented Ghanaian institutions."
 
     @transaction.atomic
     def handle(self, *args, **options):
         deleted, _ = Institution.objects.all().delete()
-        for data in ASHANTI_INSTITUTIONS:
+        for data in GHANA_INSTITUTIONS:
             Institution.objects.create(
                 **data,
                 children_count=0,
@@ -63,5 +85,5 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.WARNING(f"Removed {deleted} existing institution records."))
         self.stdout.write(self.style.SUCCESS(
-            f"Loaded {len(ASHANTI_INSTITUTIONS)} verified Ashanti Region institutions."
+            f"Loaded {len(GHANA_INSTITUTIONS)} verified Ghana institutions."
         ))
