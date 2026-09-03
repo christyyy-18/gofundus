@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
 import { apiFetch } from '../services/api';
+import { signInWithGoogle } from '../services/firebase';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -39,6 +40,28 @@ const Login = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const idToken = await signInWithGoogle();
+      const res = await apiFetch('/auth/google/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_token: idToken }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Google sign-in failed');
+      localStorage.setItem('user', JSON.stringify(data.user));
+      window.dispatchEvent(new Event('auth-change'));
+      addToast('Welcome to GoFundUs!', 'success');
+      navigate('/dashboard');
+    } catch (err) {
+      addToast(err?.message || 'Google sign-in failed.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div style={styles.page}>
@@ -58,7 +81,7 @@ const Login = () => {
           <div style={styles.heroBlock}>
             <div style={styles.heroTextWrap}>
               <div style={styles.kicker}>Precision • transparency • impact</div>
-              <h1 style={styles.heroTitle}>Smart giving to Kumasi orphanages.</h1>
+              <h1 style={styles.heroTitle}>Smart giving to Ghanaian orphanages.</h1>
               <p style={styles.heroText}>
                 Our AI connects donors with verified orphanages, matching funding to real needs with complete transparency and measurable outcomes.
               </p>
@@ -136,7 +159,7 @@ const Login = () => {
           <div style={styles.card}>
             <div style={styles.cardBadge}>AI-powered matching</div>
             <h2 style={styles.cardTitle}>Welcome back</h2>
-            <p style={styles.cardSub}>Sign in to match with Kumasi orphanages and fund verified community needs.</p>
+            <p style={styles.cardSub}>Sign in to match with Ghanaian orphanages and fund verified community needs.</p>
 
             <form onSubmit={handleSubmit} style={styles.form}>
               <div style={styles.fieldWrap}>
@@ -166,6 +189,12 @@ const Login = () => {
                 {loading ? <span style={styles.spinner} /> : 'Sign in'}
               </button>
             </form>
+
+            <div style={styles.divider}><span>or</span></div>
+            <button type="button" onClick={handleGoogleSignIn} disabled={loading} style={styles.googleBtn}>
+              <span style={styles.googleMark}>G</span>
+              Continue with Google
+            </button>
 
             <div style={styles.footer}>
               <p style={{ margin: '0 0 1rem' }}>
@@ -593,6 +622,43 @@ const styles = {
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: '0 14px 24px rgba(42,81,72,0.18)',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    margin: '18px 0 14px',
+    color: '#8b8177',
+    fontSize: '0.76rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.16em',
+  },
+  googleBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '10px',
+    width: '100%',
+    padding: '0.85rem 1.2rem',
+    borderRadius: '14px',
+    border: '1px solid #ded5ca',
+    background: '#fff',
+    color: '#302b27',
+    fontSize: '0.82rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  googleMark: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '20px',
+    height: '20px',
+    borderRadius: '50%',
+    color: '#4285f4',
+    fontFamily: 'Arial, sans-serif',
+    fontWeight: 800,
+    fontSize: '1rem',
   },
   spinner: {
     width: '16px',

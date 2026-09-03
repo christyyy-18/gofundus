@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from api.views import (
     InstitutionViewSet, InterestStatementViewSet, NotificationViewSet,
-    match_donor_interests, get_or_run_clusters, register_user, login_user,
+    match_donor_interests, get_or_run_clusters, register_user, login_user, google_login,
     get_my_profile, notify_institution_update, logout_user, csrf_token,
     send_support_inquiry, send_institution_contact,
 )
@@ -18,6 +18,7 @@ urlpatterns = [
     path('clusters/', get_or_run_clusters, name='clusters'),
     path('auth/register/', register_user, name='register'),
     path('auth/login/', login_user, name='login'),
+    path('auth/google/', google_login, name='google-login'),
     path('auth/logout/', logout_user, name='logout'),
     path('auth/csrf/', csrf_token, name='csrf-token'),
     path('profile/me/', get_my_profile, name='profile-me'),

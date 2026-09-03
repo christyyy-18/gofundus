@@ -67,3 +67,11 @@ python manage.py sync_ashanti_institutions
 ```
 
 This replaces all existing institution records, including test records. The current records are limited to organizations documented by [Light for Children](https://www.lightforchildren.com/orphanages), [SOS Children's Villages](https://www.sos-childrensvillages.org/where-we-help/africa/ghana/kumasi), [Kumasi Children's Home](https://kumasichildrenshome.mogcsp.gov.gh/), and [Osu Children's Home](https://osuchildrenshome.gov.gh/). The UNICEF/MoGCSP mapping identified 115 homes nationally in 2016; this fixture is not presented as a complete current registry. Children counts, funding gaps, emails, and phone numbers are left unconfirmed until supplied by the institutions or Ghana social welfare authorities.
+
+For a local demonstration with visible child counts, funding gaps, needs, dates, and Kumasi map points, run:
+
+```bash
+python manage.py seed_kumasi_mock_data
+```
+
+This replaces the institution table with 20 synthetic records. They are labeled as demo data and must not be presented as real homes or real operational figures.

@@ -252,6 +252,49 @@ def login_user(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
+def google_login(request):
+    """Verify a Firebase Google token and create a normal donor session."""
+    id_token = request.data.get('id_token')
+    if not id_token:
+        return Response({'error': 'Google identity token is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        import json
+        import os
+        import firebase_admin
+        from firebase_admin import auth as firebase_auth
+        from firebase_admin import credentials
+
+        if not firebase_admin._apps:
+            service_account_json = os.getenv('FIREBASE_SERVICE_ACCOUNT_JSON')
+            firebase_credential = (
+                credentials.Certificate(json.loads(service_account_json))
+                if service_account_json else credentials.ApplicationDefault()
+            )
+            firebase_admin.initialize_app(firebase_credential)
+        claims = firebase_auth.verify_id_token(id_token)
+    except Exception:
+        return Response({'error': 'Google sign-in could not be verified.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    email = (claims.get('email') or '').strip().lower()
+    if not email or not claims.get('email_verified'):
+        return Response({'error': 'A verified Google email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    username = f"google_{claims['uid']}"
+    user, _ = User.objects.get_or_create(username=username)
+    user.email = email
+    user.first_name = claims.get('name', '').split(' ', 1)[0]
+    user.last_name = claims.get('name', '').split(' ', 1)[1] if ' ' in claims.get('name', '') else ''
+    user.set_unusable_password()
+    user.save()
+    UserProfile.objects.update_or_create(user=user, defaults={'role': 'donor'})
+    Donor.objects.get_or_create(user=user)
+    login(request, user)
+    return Response({'message': 'Google login successful', 'user': UserSerializer(user).data})
+
+
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_user(request):
     logout(request)

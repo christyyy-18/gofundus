@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInAnonymously, signInWithPopup } from 'firebase/auth';
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -26,4 +26,13 @@ export async function uploadProfilePhoto(file, username) {
   const photoRef = ref(storage, `avatars/${session.uid}/${username}.${extension}`);
   await uploadBytes(photoRef, file, { contentType: file.type });
   return getDownloadURL(photoRef);
+}
+
+export async function signInWithGoogle() {
+  if (!firebaseConfigured || !auth) {
+    throw new Error('Google sign-in is not configured yet.');
+  }
+
+  const result = await signInWithPopup(auth, new GoogleAuthProvider());
+  return result.user.getIdToken();
 }
