@@ -32,20 +32,21 @@ vercel --prod
 
 ## 2. Frontend Deployment (React + Vite SPA)
 
-### Option A: Using Vercel Web Dashboard
-1. Go to [vercel.com/new](https://vercel.com/new) and import your repository again for the frontend.
-2. Under **Root Directory**, click **Edit** and select **`frontend`**.
-3. Framework Preset: **Vite** (Build Command: `npm run build`, Output Directory: `dist`).
+### Frontend Vercel project
+Use one dedicated Vercel project for the frontend.
+
+1. Open the Vercel project **Settings > General > Root Directory**.
+2. Set Root Directory to **`frontend`** and save it.
+3. Framework Preset: **Vite**. The committed `frontend/vercel.json` defines the install command, build command, and output directory.
 4. Add the following **Environment Variables**:
    - `VITE_API_URL`: `https://<your-backend-project>.vercel.app/api`
    - `VITE_PAYSTACK_PUBLIC_KEY`: `pk_live_...` (or `pk_test_...` for testing)
-5. Click **Deploy**.
+5. Click **Deploy** or trigger a redeploy.
 
-### Option B: Using Vercel CLI
+### Using Vercel CLI
 ```bash
 cd frontend
 vercel
-# Follow interactive prompts, select frontend root directory
 vercel --prod
 ```
 
