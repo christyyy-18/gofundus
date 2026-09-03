@@ -4,7 +4,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--color-surface, #fff);
+  background: rgba(247, 241, 234, 0.96);
   border-bottom: 1px solid var(--color-border, #e0e0e0);
   padding: 0 1.5rem;
   height: 56px;
@@ -24,7 +24,8 @@
 .navbar__brand {
   font-weight: 700;
   font-size: 1.05rem;
-  color: var(--color-primary, #2D9CDB);
+  color: #234d45;
+  font-family: var(--font-display);
   text-decoration: none;
   letter-spacing: -0.01em;
   margin-right: auto;
@@ -42,8 +43,8 @@
 
 .navbar__link:hover,
 .navbar__link.active {
-  color: var(--color-primary, #2D9CDB);
-  border-bottom-color: var(--color-primary, #2D9CDB);
+  color: #234d45;
+  border-bottom-color: #cf9c5d;
 }
 
 .navbar__btn {
@@ -72,7 +73,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e3a5f, #2D9CDB);
+  background: #234d45;
   color: #fff;
   display: inline-flex;
   align-items: center;

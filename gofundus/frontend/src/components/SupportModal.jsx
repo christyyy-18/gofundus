@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { usePaystackPayment } from 'react-paystack';
 import { useToast } from './ToastProvider';
+import { sendInstitutionContactEmail } from '../services/api';
+import { CheckCircle, CreditCard, Mail, MapPin, X } from 'lucide-react';
 
-/* ─── Public key — replace with your live key when ready ─── */
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_key_here';
+/* ─── Public key for live Paystack payments ─── */
+const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_ed1e2e022f83339de939f87022bdc338bbe4a801';
 
 /* ─── Amount presets (GHS) ─── */
 const PRESETS = [50, 100, 250, 500, 1000];
@@ -81,7 +83,14 @@ export default function SupportModal({ institution, onClose }) {
     const key = `orgPortal_${institution.id}_issues`;
     const existing = (() => { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } })();
     localStorage.setItem(key, JSON.stringify([{ id: Date.now(), date: new Date().toISOString().split('T')[0], from: donorName || 'A visitor', message: issue }, ...existing]));
-    await new Promise(r => setTimeout(r, 600));
+
+    // Dispatch email to institution via backend API
+    await sendInstitutionContactEmail(institution.id, {
+      donor_name: donorName.trim() || 'Anonymous Donor',
+      donor_email: donorEmail.trim() || 'donor@gofundus.org',
+      message: issue.trim(),
+    });
+
     setSubmitting(false);
     addToast(`Your message has been sent to ${institution.name}.`, 'success');
     setIssue('');
@@ -119,13 +128,13 @@ export default function SupportModal({ institution, onClose }) {
             <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
               {institution.name}
             </h2>
-            <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '3px' }}>📍 {institution.district}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', color: '#64748b', marginTop: '3px' }}><MapPin size={13} /> {institution.district}</div>
           </div>
           <button
             onClick={onClose}
             style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontSize: '1rem', color: '#475569', flexShrink: 0, marginLeft: '1rem' }}
           >
-            ✕
+            <X size={17} />
           </button>
         </div>
 
@@ -144,7 +153,7 @@ export default function SupportModal({ institution, onClose }) {
                 transition: 'background 0.15s, color 0.15s',
               }}
             >
-              {t === 'donate' ? '💳 Make a Donation' : '✉️ Contact / Report Issue'}
+              {t === 'donate' ? <><CreditCard size={15} /> Make a Donation</> : <><Mail size={15} /> Contact / Report Issue</>}
             </button>
           ))}
         </div>
@@ -154,7 +163,7 @@ export default function SupportModal({ institution, onClose }) {
           {/* ── Success screen ── */}
           {done ? (
             <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>✅</div>
+              <div style={{ marginBottom: '0.75rem', color: '#15803d' }}><CheckCircle size={40} /></div>
               <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
                 {tab === 'donate' ? 'Donation Received!' : 'Message Sent!'}
               </h3>
@@ -255,7 +264,7 @@ export default function SupportModal({ institution, onClose }) {
               )}
 
               <button type="submit" style={{ ...s.btnPrimary, background: '#16a34a' }}>
-                💳 Pay with Paystack
+                Pay with Paystack
               </button>
 
               <p style={{ margin: 0, fontSize: '0.72rem', color: '#94a3b8', textAlign: 'center' }}>
@@ -288,7 +297,7 @@ export default function SupportModal({ institution, onClose }) {
               </div>
 
               <button type="submit" disabled={submitting} style={s.btnPrimary}>
-                {submitting ? 'Sending…' : '✉️ Send Message'}
+                {submitting ? 'Sending…' : 'Send Message'}
               </button>
             </form>
           )}

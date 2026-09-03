@@ -1,0 +1,30 @@
+# Secrets and local environment files
+.env
+.env.*
+!.env.example
+*.secret
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+backend/venv/
+
+# Django/local data
+backend/staticfiles/
+backend/media/
+backend/data.json
+
+# Frontend dependencies and builds
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+
+# Local/editor files
+.vscode/
+.DS_Store
+Thumbs.db
+npm-debug.log*
+.vercel

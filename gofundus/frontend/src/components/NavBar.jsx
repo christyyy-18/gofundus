@@ -1,30 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import './NavBar.css';
 import { useToast } from './ToastProvider';
+import { apiFetch } from '../services/api';
 
 const NavBar = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user') || 'null'); }
+    catch { return null; }
+  });
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  useEffect(() => {
+    const syncUser = () => {
+      try { setUser(JSON.parse(localStorage.getItem('user') || 'null')); }
+      catch { setUser(null); }
+    };
+    window.addEventListener('auth-change', syncUser);
+    return () => window.removeEventListener('auth-change', syncUser);
+  }, []);
+
+  const handleLogout = async () => {
+    await apiFetch('/auth/logout/', { method: 'POST' }).catch(() => {});
     localStorage.removeItem('user');
+    window.dispatchEvent(new Event('auth-change'));
     addToast('Logged out', 'success');
     navigate('/login');
   };
 
-  const isLoggedIn = !!localStorage.getItem('token');
-  const user = (() => {
-    try { return JSON.parse(localStorage.getItem('user') || '{}'); }
-    catch { return {}; }
-  })();
-  const initials = (
-    `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() ||
-    user.username?.[0]?.toUpperCase() ||
-    '?'
-  );
-  const storedAvatar = user.username ? localStorage.getItem(`avatar_${user.username}`) : null;
+  const isLoggedIn = !!user;
+  const initials = isLoggedIn
+    ? (`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() ||
+        user.username?.[0]?.toUpperCase() ||
+        '?')
+    : '?';
+  const storedAvatar = isLoggedIn && user.username
+    ? localStorage.getItem(`avatar_${user.username}`)
+    : null;
 
   return (
     <header className="navbar">

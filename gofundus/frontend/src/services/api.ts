@@ -2,6 +2,29 @@ import { Institution, MatchResponse } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
+function readCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(^|;\\s*)${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
+export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const method = (init.method || 'GET').toUpperCase();
+  const headers = new Headers(init.headers);
+  if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+    let csrfToken = readCookie('csrftoken');
+    if (!csrfToken) {
+      await fetch(`${API_BASE_URL}/auth/csrf/`, { credentials: 'include' });
+      csrfToken = readCookie('csrftoken');
+    }
+    if (csrfToken) headers.set('X-CSRFToken', csrfToken);
+  }
+  return fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers,
+    credentials: 'include',
+  });
+}
+
 
 export async function fetchInstitutions(district?: string, search?: string): Promise<Institution[]> {
   try {
@@ -11,7 +34,7 @@ export async function fetchInstitutions(district?: string, search?: string): Pro
     if (search) params.append('search', search);
     if (params.toString()) url += `?${params.toString()}`;
 
-    const res = await fetch(url);
+    const res = await apiFetch(url.replace(API_BASE_URL, ''));
     if (!res.ok) throw new Error('Failed to fetch institutions');
     return await res.json();
   } catch (error) {
@@ -22,7 +45,7 @@ export async function fetchInstitutions(district?: string, search?: string): Pro
 
 export async function matchDonorStatement(text: string, lat = 6.6885, lng = -1.6244): Promise<MatchResponse> {
   try {
-    const res = await fetch(`${API_BASE_URL}/match/`, {
+    const res = await apiFetch('/match/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ interest_statement: text, lat, lng })
@@ -37,7 +60,7 @@ export async function matchDonorStatement(text: string, lat = 6.6885, lng = -1.6
 
 export async function fetchClusters(): Promise<any> {
   try {
-    const res = await fetch(`${API_BASE_URL}/clusters/`);
+    const res = await apiFetch('/clusters/');
     if (!res.ok) throw new Error('Clusters API failed');
     return await res.json();
   } catch (error) {
@@ -55,7 +78,7 @@ export async function fetchClusters(): Promise<any> {
 
 export async function updateInstitutionNeed(id: string, data: Partial<Institution>): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE_URL}/institutions/${id}/`, {
+    const res = await apiFetch(`/institutions/${id}/`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -69,7 +92,7 @@ export async function updateInstitutionNeed(id: string, data: Partial<Institutio
 
 export async function sendInstitutionUpdatePrompt(id: string): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE_URL}/institutions/${id}/notify_update/`, {
+    const res = await apiFetch(`/institutions/${id}/notify_update/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -79,6 +102,26 @@ export async function sendInstitutionUpdatePrompt(id: string): Promise<boolean> 
     return false;
   }
 }
+
+export async function sendInstitutionContactEmail(
+  institutionId: string,
+  payload: { donor_name: string; donor_email: string; message: string }
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await apiFetch(`/institutions/${institutionId}/contact/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) return { ok: true };
+    const data = await res.json().catch(() => ({}));
+    return { ok: false, error: data.error || 'Failed to send message.' };
+  } catch (error) {
+    console.error('Error sending institution contact email:', error);
+    return { ok: false, error: 'Network error — please try again.' };
+  }
+}
+
 
 export const FALLBACK_INSTITUTIONS: Institution[] = [
   {
@@ -222,13 +265,13 @@ function computeMockMatches(queryText: string, donorLat: number, donorLng: numbe
   };
 }
 const api = {
-  get: (url) => fetch(`${API_BASE_URL}${url}`).then(r => r.json()),
-  post: (url, data) => fetch(`${API_BASE_URL}${url}`, {
+  get: (url: string) => apiFetch(url).then(r => r.json()),
+  post: (url: string, data: unknown) => apiFetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }).then(r => r.json()),
-  patch: (url, data) => fetch(`${API_BASE_URL}${url}`, {
+  patch: (url: string, data: unknown) => apiFetch(url, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)

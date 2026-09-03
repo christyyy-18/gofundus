@@ -1,19 +1,28 @@
 import math
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
+from django.middleware.csrf import get_token
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from api.models import UserProfile, Donor, Institution, InterestStatement, Cluster, Match, Notification
 from api.serializers import (
     UserSerializer, DonorSerializer, InstitutionSerializer,
     InterestStatementSerializer, MatchSerializer, NotificationSerializer
 )
 from api.clustering import perform_kmeans_clustering
+from api.permissions import IsInstitutionOwnerOrSystemAdmin, IsSystemAdmin
+from api import email_utils
 
 class InstitutionViewSet(viewsets.ModelViewSet):
     queryset = Institution.objects.all().order_by('-children_count')
     serializer_class = InstitutionSerializer
+
+    def get_permissions(self):
+        if self.action in {'list', 'retrieve'}:
+            return [AllowAny()]
+        return [IsInstitutionOwnerOrSystemAdmin()]
 
     def get_queryset(self):
         queryset = Institution.objects.all()
@@ -29,20 +38,29 @@ class InstitutionViewSet(viewsets.ModelViewSet):
 class InterestStatementViewSet(viewsets.ModelViewSet):
     queryset = InterestStatement.objects.all().order_by('-submitted_at')
     serializer_class = InterestStatementSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by('-created_at')
     serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
 def get_or_run_clusters(request):
     """
     Geospatial Clustering API:
     Executes or retrieves K-Means clusters and Silhouette validation score.
     """
-    if request.method == 'POST' or not Cluster.objects.exists():
+    if request.method == 'POST':
+        if not request.user.is_authenticated or not IsSystemAdmin().has_permission(request, None):
+            return Response({'detail': 'System administrator access required.'}, status=status.HTTP_403_FORBIDDEN)
+        res = perform_kmeans_clustering()
+        return Response(res)
+
+    if not Cluster.objects.exists():
         res = perform_kmeans_clustering()
         return Response(res)
     
@@ -66,6 +84,7 @@ def get_or_run_clusters(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def match_donor_interests(request):
     """
     Core AI Matching Endpoint:
@@ -176,11 +195,14 @@ def match_donor_interests(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def register_user(request):
-    username = request.data.get('username')
-    email = request.data.get('email')
-    password = request.data.get('password')
-    role = request.data.get('role', 'donor')
+    username         = request.data.get('username')
+    email            = request.data.get('email')
+    password         = request.data.get('password')
+    role             = request.data.get('role', 'donor')
+    first_name       = request.data.get('first_name', '').strip()
+    institution_name = request.data.get('institution_name', '').strip()
 
     if not username or not password:
         return Response({"error": "Username and password required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -189,9 +211,23 @@ def register_user(request):
         return Response({"error": "Username already taken."}, status=status.HTTP_400_BAD_REQUEST)
 
     user = User.objects.create_user(username=username, email=email, password=password)
+    if first_name:
+        user.first_name = first_name
+        user.save(update_fields=['first_name'])
     UserProfile.objects.create(user=user, role=role)
     if role == 'donor':
         Donor.objects.create(user=user)
+
+    login(request, user)
+
+    # Send welcome email (non-blocking — failures don't affect registration)
+    if email:
+        email_utils.send_welcome_email(
+            to_name=first_name or username,
+            to_email=email,
+            role=role,
+            institution_name=institution_name or None,
+        )
 
     return Response({
         "message": "User registered successfully",
@@ -199,39 +235,84 @@ def register_user(request):
     }, status=status.HTTP_201_CREATED)
 
 
+
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
     user = authenticate(username=username, password=password)
     if not user:
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+    login(request, user)
     return Response({
         "message": "Login successful",
         "user": UserSerializer(user).data
     })
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout_user(request):
+    logout(request)
+    return Response({'message': 'Logout successful'})
+
+
 @api_view(['GET'])
+@permission_classes([AllowAny])
+def csrf_token(request):
+    return Response({'csrfToken': get_token(request)})
+
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([AllowAny])
 def get_my_profile(request):
     """
-    Returns the full donor profile for a given username.
-    Usage: GET /api/profile/me/?username=chris
+    Returns or updates the full profile for the user.
+    Supports session-authenticated users and username query parameter fallback.
     """
-    username = request.query_params.get('username')
-    if not username:
-        return Response({"error": "username query param required"}, status=status.HTTP_400_BAD_REQUEST)
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    user = None
+    if request.user and request.user.is_authenticated:
+        user = request.user
+    else:
+        username = request.query_params.get('username')
+        if username:
+            user = User.objects.filter(username=username).first()
 
-    profile = getattr(user, 'profile', None)
+    if not user:
+        return Response({"error": "User not found or not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    profile, _ = UserProfile.objects.get_or_create(user=user)
     role = profile.role if profile else 'donor'
+
+    if request.method == 'PATCH':
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        email = request.data.get('email')
+        phone = request.data.get('phone')
+        preferred_causes = request.data.get('preferred_causes')
+
+        if first_name is not None:
+            user.first_name = first_name.strip()
+        if last_name is not None:
+            user.last_name = last_name.strip()
+        if email is not None:
+            user.email = email.strip()
+        user.save()
+
+        if phone is not None:
+            profile.phone = phone.strip()
+            profile.save()
+
+        if hasattr(user, 'donor_profile') and preferred_causes is not None:
+            donor = user.donor_profile
+            donor.preferred_causes = preferred_causes
+            donor.save()
 
     donor_data = None
     matches_data = []
     notifications_data = []
+    institution_data = None
 
     if hasattr(user, 'donor_profile'):
         donor = user.donor_profile
@@ -241,27 +322,43 @@ def get_my_profile(request):
         notifications = donor.notifications.order_by('-created_at')[:10]
         notifications_data = NotificationSerializer(notifications, many=True).data
 
+    if hasattr(user, 'institution_profile'):
+        institution_data = InstitutionSerializer(user.institution_profile).data
+
     return Response({
         "user": UserSerializer(user).data,
         "role": role,
         "donor": donor_data,
+        "institution": institution_data,
         "matches": matches_data,
         "notifications": notifications_data,
     })
 
 
+
 @api_view(['POST'])
+@permission_classes([IsSystemAdmin])
 def notify_institution_update(request, pk):
     """
     Admin action: Sends an automated prompt/notification to an institution
     requesting them to update their operational funding gap & headcount.
+    Emails the institution's contact address and creates in-app notifications.
     """
     try:
         inst = Institution.objects.get(pk=pk)
     except Institution.DoesNotExist:
         return Response({"error": "Institution not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    # Create a broadcast notification / log item
+    # Email the institution directly (if they have a contact address)
+    email_sent = False
+    if inst.contact_email:
+        email_sent = email_utils.send_institution_update_prompt(
+            institution_name=inst.name,
+            institution_email=inst.contact_email,
+            district=inst.district,
+        )
+
+    # Also create in-app notifications for all donors
     from api.models import Donor
     donors = Donor.objects.all()
     for d in donors:
@@ -272,8 +369,91 @@ def notify_institution_update(request, pk):
 
     return Response({
         "status": "success",
-        "message": f"Update notification successfully dispatched to {inst.name}.",
-        "institution_id": inst.id
+        "message": f"Update notification dispatched to {inst.name}.",
+        "email_sent": email_sent,
+        "institution_id": str(inst.id),
     })
 
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_support_inquiry(request):
+    """
+    Support page contact form:
+    Saves the inquiry in-app (for the admin inbox) and sends two emails:
+      1. Notification to the platform admin.
+      2. Auto-acknowledgement to the sender.
+    """
+    from_name  = request.data.get('name', '').strip()
+    from_email = request.data.get('email', '').strip()
+    message    = request.data.get('message', '').strip()
+    source     = request.data.get('source', 'Support Page').strip()
+
+    if not from_name or not from_email or not message:
+        return Response(
+            {"error": "name, email, and message are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Fire both emails; capture results but don't fail if email is down
+    admin_sent = email_utils.send_support_inquiry_to_admin(
+        from_name=from_name,
+        from_email=from_email,
+        message=message,
+        source=source,
+    )
+    ack_sent = email_utils.send_support_acknowledgement(
+        to_name=from_name,
+        to_email=from_email,
+    )
+
+    return Response({
+        "status": "received",
+        "admin_email_sent": admin_sent,
+        "ack_email_sent": ack_sent,
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_institution_contact(request, pk):
+    """
+    Donor-to-institution contact:
+    Forwards a donor's message to the institution's registered email address.
+    """
+    try:
+        inst = Institution.objects.get(pk=pk)
+    except Institution.DoesNotExist:
+        return Response({"error": "Institution not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if not inst.contact_email:
+        return Response(
+            {"error": "This institution has no registered contact email."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    donor_name  = request.data.get('donor_name', '').strip()
+    donor_email = request.data.get('donor_email', '').strip()
+    message     = request.data.get('message', '').strip()
+
+    if not donor_name or not donor_email or not message:
+        return Response(
+            {"error": "donor_name, donor_email, and message are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    sent = email_utils.send_institution_contact(
+        institution_name=inst.name,
+        institution_email=inst.contact_email,
+        donor_name=donor_name,
+        donor_email=donor_email,
+        message=message,
+    )
+
+    if sent:
+        return Response({"status": "sent", "institution": inst.name})
+    return Response(
+        {"error": "Email delivery failed. Please try again later."},
+        status=status.HTTP_503_SERVICE_UNAVAILABLE,
+    )
 

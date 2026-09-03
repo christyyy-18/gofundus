@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
-import api from '../services/api';
+import { apiFetch } from '../services/api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -14,15 +14,15 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/auth/login/`, {
+      const res = await apiFetch('/auth/login/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || 'Login failed');
-      localStorage.setItem('token', data.token || data.key || 'session');
       localStorage.setItem('user', JSON.stringify(data.user || { username }));
+      window.dispatchEvent(new Event('auth-change'));
       addToast('Welcome back!', 'success');
       const role = data.user?.role;
       if (role === 'admin' || role === 'system_admin') {
@@ -42,78 +42,141 @@ const Login = () => {
 
   return (
     <div style={styles.page}>
-      {/* Left panel — brand */}
-      <div style={styles.brand}>
-        {/* Background photo with opacity */}
-        <div style={styles.brandBg} />
-        
-        {/* Logo — top center */}
-        <div style={styles.logoWrapper}>
-          <img src="/logo.png" alt="GoFundUs Logo" style={styles.logo} />
-        </div>
+      <div style={styles.shell}>
+        <div style={styles.brandPanel}>
+          <div style={styles.brandGlow1} />
+          <div style={styles.brandGlow2} />
 
-        <div style={{ ...styles.brandInner, position: 'relative', zIndex: 1 }}>
-          <h1 style={styles.brandTitle}>GoFundUs</h1>
-          <p style={styles.brandSub}>
-            AI-powered donor matching for orphanages across Kumasi, Ghana.
-          </p>
-          <div style={styles.stats}>
-            {[['15+', 'Orphanages'], ['350+', 'Children'], ['92%', 'Match Accuracy']].map(([val, label]) => (
-              <div key={label} style={styles.stat}>
-                <span style={styles.statVal}>{val}</span>
-                <span style={styles.statLabel}>{label}</span>
+          <div style={styles.brandHeader}>
+            <div style={styles.logoBadge}>G</div>
+            <div>
+              <div style={styles.brandLabel}>GoFundUs</div>
+              <div style={styles.brandSubLabel}>AI-powered donor matching</div>
+            </div>
+          </div>
+
+          <div style={styles.heroBlock}>
+            <div style={styles.heroTextWrap}>
+              <div style={styles.kicker}>Precision • transparency • impact</div>
+              <h1 style={styles.heroTitle}>Smart giving to Kumasi orphanages.</h1>
+              <p style={styles.heroText}>
+                Our AI connects donors with verified orphanages, matching funding to real needs with complete transparency and measurable outcomes.
+              </p>
+              
+              <div style={styles.statsRow}>
+                <div style={styles.stat}>
+                  <div style={styles.statNumber}>15+</div>
+                  <div style={styles.statLabel}>Orphanages</div>
+                </div>
+                <div style={styles.stat}>
+                  <div style={styles.statNumber}>350+</div>
+                  <div style={styles.statLabel}>Children</div>
+                </div>
               </div>
-            ))}
+            </div>
+
+            <div style={styles.heroCard}>
+              <div style={styles.cardTopBar}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={styles.dot} />
+                  <span style={styles.miniBrand}>GoFundUs</span>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <span style={styles.miniDot} />
+                  <span style={styles.miniDot} />
+                  <span style={styles.miniDot} />
+                </div>
+              </div>
+
+              <div style={styles.cardHeroRow}>
+                <div style={styles.textStack}>
+                  <p style={styles.cardTitleLarge}>Smart<br />donor<br />matching<br />in Kumasi</p>
+                </div>
+
+                <div style={styles.imageStack}>
+                  <div style={styles.imageBack} />
+                  <div style={styles.imageFrame}>
+                    <img
+                      src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=900&q=80"
+                      alt="Orphanage support"
+                      style={styles.image}
+                    />
+                  </div>
+                  <span style={styles.orangeBlob} />
+                  <span style={styles.greenBlob} />
+                  <span style={styles.goldBlob} />
+                </div>
+              </div>
+
+              <div style={styles.programCard}>
+                <div style={styles.programHeader}>Verified Needs</div>
+                <div style={styles.programGrid}>
+                  {[
+                    ['Education', '/images/youth_home.png'],
+                    ['Healthcare', '/images/cherubs_home.png'],
+                    ['Nutrition', '/images/king_jesus_home.png'],
+                    ['Shelter', '/images/mampong_home.png'],
+                    ['Clothing', '/images/youth_home.png'],
+                    ['Clean Water', '/images/hong_kong_home.svg'],
+                    ['Vocational Training', '/images/youth_home.png'],
+                    ['Mental Health', '/images/cherubs_home.png'],
+                  ].map(([name, src]) => (
+                    <div key={name} style={styles.programItem}>
+                      <div style={{ ...styles.programImage, backgroundImage: `url(${src})` }} />
+                      <div style={styles.programName}>{name}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Right panel — form */}
-      <div style={styles.formPanel}>
-        <div style={styles.card}>
-          <h2 style={styles.cardTitle}>Welcome Back!</h2>
-          <p style={styles.cardSub}>Please fill the form below to get started. If you are not a member yet, please register below.</p>
+        <div style={styles.formPanel}>
+          <div style={styles.card}>
+            <div style={styles.cardBadge}>AI-powered matching</div>
+            <h2 style={styles.cardTitle}>Welcome back</h2>
+            <p style={styles.cardSub}>Sign in to match with Kumasi orphanages and fund verified community needs.</p>
 
-          <form onSubmit={handleSubmit} style={styles.form}>
-            <div style={{ marginBottom: '1rem' }}>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                placeholder="Username (e.g. chris)"
-                required
-                style={styles.input}
-              />
+            <form onSubmit={handleSubmit} style={styles.form}>
+              <div style={styles.fieldWrap}>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  placeholder="Username"
+                  required
+                  style={styles.input}
+                />
+              </div>
+              <div style={styles.fieldWrap}>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Password"
+                  required
+                  style={styles.input}
+                />
+              </div>
+
+              <button type="submit" disabled={loading} style={styles.btn}>
+                {loading ? <span style={styles.spinner} /> : 'Sign in'}
+              </button>
+            </form>
+
+            <div style={styles.footer}>
+              <p style={{ margin: '0 0 1rem' }}>
+                New donor?{' '}
+                <Link to="/register" style={styles.link}>Create account</Link>
+              </p>
+              <p style={{ margin: 0 }}>
+                Orphanage admin?{' '}
+                <Link to="/register-institution" style={{ ...styles.link, color: '#234d45' }}>Register charity</Link>
+              </p>
             </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-                style={styles.input}
-              />
-            </div>
-
-            <button type="submit" disabled={loading} style={styles.btn}>
-              {loading ? (
-                <span style={styles.spinner} />
-              ) : 'Sign in'}
-            </button>
-          </form>
-
-          <div style={styles.footer}>
-            <p style={{ margin: '0 0 1.25rem' }}>
-              Are you a new donor?{' '}
-              <Link to="/register" style={styles.link}>Create a donor account</Link>
-            </p>
-            <p style={{ margin: 0 }}>
-              Are you an orphanage administrator?{' '}
-              <Link to="/register-institution" style={{ ...styles.link, color: '#0369a1' }}>Register your orphanage</Link>
-            </p>
           </div>
         </div>
       </div>
@@ -133,186 +196,424 @@ const Field = ({ label, id, children }) => (
 const styles = {
   page: {
     display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     minHeight: '100vh',
-    background: '#f8fafc',
+    padding: '28px',
+    background: '#171717',
   },
-  brand: {
-    flex: 1,
+  shell: {
+    width: '100%',
+    maxWidth: '1200px',
+    borderRadius: '36px',
+    background: '#2d2d2d',
+    padding: '14px',
+    boxShadow: '0 42px 85px rgba(0,0,0,0.38)',
+    display: 'flex',
+    alignItems: 'stretch',
+    minHeight: '760px',
+  },
+  brandPanel: {
+    flex: '1.1',
     position: 'relative',
+    background: '#f7f1ea',
+    borderRadius: '28px',
+    padding: '28px 24px 20px',
+    overflow: 'hidden',
+  },
+  brandGlow1: {
+    position: 'absolute',
+    left: '-34px',
+    top: '54px',
+    width: '140px',
+    height: '140px',
+    borderRadius: '50%',
+    background: 'rgba(220,177,122,0.55)',
+    filter: 'blur(36px)',
+  },
+  brandGlow2: {
+    position: 'absolute',
+    right: '-40px',
+    top: '80px',
+    width: '180px',
+    height: '180px',
+    borderRadius: '50%',
+    background: 'rgba(237,201,114,0.6)',
+    filter: 'blur(40px)',
+  },
+  brandHeader: {
+    position: 'relative',
+    zIndex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '26px',
+    color: '#2d2a2a',
+  },
+  logoBadge: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '3rem',
-    overflow: 'hidden',
-    // Dark gradient overlay sits on top of the photo
-    background: 'linear-gradient(135deg, rgba(15,30,55,0.88) 0%, rgba(45,156,219,0.75) 100%)',
-  },
-  // pseudo-element effect achieved via a wrapper div (see brandBg)
-  brandBg: {
-    position: 'absolute',
-    inset: 0,
-    backgroundImage: 'url(/children.png)',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    opacity: 0.30,          // 70% opacity on the photo = 30% visible under the dark overlay
-    zIndex: 0,
-  },
-
-  brandInner: {
-    maxWidth: '340px',
+    fontWeight: 700,
+    fontSize: '1rem',
+    background: '#cf9c5d',
     color: '#fff',
+    boxShadow: '0 10px 20px rgba(160,111,53,0.2)',
   },
-  logoWrapper: {
-    position: 'absolute',
-    top: '3rem',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    zIndex: 2,
+  brandLabel: {
+    fontSize: '11px',
+    fontWeight: 700,
+    letterSpacing: '0.22em',
+    textTransform: 'uppercase',
+    color: '#766d63',
   },
-  logo: {
-    width: '64px',
-    height: '64px',
-    borderRadius: '16px',
-    objectFit: 'cover',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-    border: '2px solid rgba(255,255,255,0.5)',
+  brandSubLabel: {
+    fontSize: '10px',
+    fontWeight: 500,
+    color: '#463f39',
   },
-  brandTitle: {
-    fontSize: '2rem',
-    fontWeight: 800,
-    margin: '0 0 0.75rem',
-    letterSpacing: '-0.03em',
-  },
-  brandSub: {
-    fontSize: '0.95rem',
-    lineHeight: 1.6,
-    opacity: 0.85,
-    margin: '0 0 2.5rem',
-  },
-  stats: {
+  heroBlock: {
+    position: 'relative',
+    zIndex: 1,
     display: 'flex',
-    gap: '1.5rem',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    gap: '26px',
+    height: 'calc(100% - 80px)',
+  },
+  heroTextWrap: {
+    maxWidth: '520px',
+  },
+  kicker: {
+    display: 'inline-flex',
+    border: '1px solid #e6d6bf',
+    background: '#fffaf4',
+    padding: '8px 12px',
+    borderRadius: '999px',
+    fontSize: '10px',
+    letterSpacing: '0.22em',
+    textTransform: 'uppercase',
+    color: '#7d6b5a',
+    marginBottom: '18px',
+  },
+  heroTitle: {
+    fontFamily: 'Georgia, serif',
+    fontSize: 'clamp(3rem, 4vw, 5.1rem)',
+    lineHeight: '0.88',
+    letterSpacing: '-0.08em',
+    color: '#241f1d',
+    margin: 0,
+    maxWidth: '560px',
+  },
+  heroText: {
+    fontSize: '1.04rem',
+    lineHeight: 1.7,
+    color: '#5d564f',
+    marginTop: '14px',
+    maxWidth: '490px',
+  },
+  statsRow: {
+    display: 'flex',
+    gap: '32px',
+    marginTop: '28px',
   },
   stat: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.2rem',
+    gap: '4px',
   },
-  statVal: {
-    fontSize: '1.5rem',
-    fontWeight: 800,
-    letterSpacing: '-0.02em',
+  statNumber: {
+    fontFamily: 'Georgia, serif',
+    fontSize: '2rem',
+    fontWeight: 700,
+    lineHeight: 1,
+    color: '#cf9c5d',
+    letterSpacing: '-0.05em',
   },
   statLabel: {
-    fontSize: '0.75rem',
-    opacity: 0.75,
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    color: '#5d564f',
+    letterSpacing: '0.05em',
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
   },
-  formPanel: {
-    width: '460px',
-    minWidth: '320px',
+  heroCard: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: '470px',
+    margin: '0 auto',
+    background: '#f0e5d8',
+    borderRadius: '30px',
+    padding: '18px 16px 14px',
+    boxShadow: '0 30px 65px rgba(79,62,42,0.12)',
+    animation: 'floatUp 7s ease-in-out infinite',
+  },
+  cardTopBar: {
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '2px 6px 14px',
+    color: '#766d63',
+    fontSize: '10px',
+    letterSpacing: '0.2em',
+    textTransform: 'uppercase',
+    fontWeight: 600,
+  },
+  dot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    display: 'inline-block',
+    background: '#c98c52',
+  },
+  miniBrand: {
+    fontSize: '10px',
+    letterSpacing: '0.2em',
+    textTransform: 'uppercase',
+  },
+  miniDot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    display: 'inline-block',
+    background: '#d9c5a5',
+  },
+  cardHeroRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: '10px',
+  },
+  textStack: {
+    flex: '1',
+    paddingTop: '10px',
+    color: '#2c2a2a',
+  },
+  cardTitleLarge: {
+    margin: 0,
+    fontFamily: 'Georgia, serif',
+    fontSize: '2.5rem',
+    lineHeight: '0.82',
+    letterSpacing: '-0.07em',
+  },
+  imageStack: {
+    position: 'relative',
+    width: '175px',
+    height: '185px',
+    marginRight: '4px',
+  },
+  imageBack: {
+    position: 'absolute',
+    inset: '0 0 0 0',
+    borderRadius: '28px',
+    background: 'rgba(220,194,158,0.6)',
+    filter: 'blur(2px)',
+  },
+  imageFrame: {
+    position: 'absolute',
+    left: '16px',
+    right: '16px',
+    top: '22px',
+    height: '138px',
+    borderRadius: '26px',
+    border: '6px solid #f5f0ea',
+    background: '#e6c9a8',
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+  },
+  orangeBlob: {
+    position: 'absolute',
+    left: '-10px',
+    top: '40px',
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    background: '#d26045',
+    opacity: 0.9,
+  },
+  greenBlob: {
+    position: 'absolute',
+    left: '8px',
+    bottom: '-2px',
+    width: '38px',
+    height: '38px',
+    borderRadius: '50%',
+    background: '#4fa8a6',
+    opacity: 0.7,
+  },
+  goldBlob: {
+    position: 'absolute',
+    right: '-4px',
+    top: '62px',
+    width: '34px',
+    height: '34px',
+    borderRadius: '50%',
+    background: '#f2c261',
+    opacity: 0.9,
+  },
+  programCard: {
+    background: '#f8f4f0',
+    border: '2px solid #e6d6bf',
+    borderRadius: '18px',
+    padding: '16px 14px 12px',
+    marginTop: '14px',
+    boxShadow: '0 12px 28px rgba(99,79,56,0.12)',
+    width: '100%',
+    maxWidth: '560px',
+  },
+  programHeader: {
+    textAlign: 'center',
+    fontSize: '11px',
+    letterSpacing: '0.28em',
+    textTransform: 'uppercase',
+    color: '#766d63',
+    marginBottom: '16px',
+    fontWeight: 700,
+  },
+  programGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gap: '10px',
+  },
+  programItem: {
+    textAlign: 'center',
+    transition: 'transform 0.2s ease',
+    cursor: 'pointer',
+  },
+  programImage: {
+    width: '100%',
+    height: '56px',
+    borderRadius: '12px',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    marginBottom: '8px',
+    boxShadow: '0 8px 16px rgba(128,106,74,0.12)',
+    border: '1px solid rgba(230,214,191,0.5)',
+    transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+  },
+  programName: {
+    fontSize: '9px',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    color: '#241f1d',
+    fontWeight: 700,
+    lineHeight: 1.2,
+  },
+  formPanel: {
+    width: '420px',
+    minWidth: '320px',
+    display: 'flex',
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    padding: '2rem',
-    background: '#fff',
+    paddingTop: '0px',
+    paddingBottom: '18px',
+    paddingLeft: '18px',
+    paddingRight: '18px',
+    background: 'linear-gradient(180deg, #f7f1ea 0%, #f3eee6 100%)',
+    borderRadius: '28px',
   },
   card: {
     width: '100%',
     maxWidth: '360px',
+    background: 'rgba(255,255,255,0.8)',
+    border: '1px solid rgba(180,155,129,0.25)',
+    borderRadius: '26px',
+    padding: '20px 24px 20px',
+    boxShadow: '0 18px 30px rgba(90,70,50,0.08)',
+    marginTop: '0px',
+  },
+  cardBadge: {
+    display: 'inline-flex',
+    padding: '7px 10px',
+    borderRadius: '999px',
+    border: '1px solid #eedac0',
+    background: '#fffaf3',
+    color: '#7d6b5a',
+    fontSize: '9px',
+    letterSpacing: '0.18em',
+    textTransform: 'uppercase',
+    fontWeight: 700,
+    marginBottom: '18px',
   },
   cardTitle: {
-    fontSize: '2rem',
-    fontWeight: 800,
-    color: '#38526A',
-    margin: '0 0 0.5rem',
-    letterSpacing: '-0.02em',
-    fontFamily: "'Georgia', serif",
+    fontFamily: 'Georgia, serif',
+    fontSize: '2.5rem',
+    letterSpacing: '-0.05em',
+    color: '#1d1a18',
+    margin: '0 0 10px',
   },
   cardSub: {
-    fontSize: '0.9rem',
-    color: '#94a3b8',
-    margin: '0 0 2.5rem',
-    lineHeight: 1.5,
+    fontSize: '0.92rem',
+    lineHeight: 1.7,
+    color: '#655f5a',
+    marginBottom: '22px',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
+    gap: '14px',
+  },
+  fieldWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.4rem',
   },
   input: {
-    padding: '1rem 1.25rem',
-    borderRadius: '16px',
-    border: 'none',
-    background: '#f1f5f9',
-    color: '#0f172a',
+    width: '100%',
+    padding: '0.95rem 1rem',
+    borderRadius: '14px',
+    border: '1px solid #e7decf',
+    background: '#fcfaf7',
+    color: '#221f1d',
     fontSize: '0.95rem',
     fontFamily: 'inherit',
     outline: 'none',
-    transition: 'background 0.15s, box-shadow 0.15s',
-    width: '100%',
-    boxSizing: 'border-box',
+    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5)',
   },
   btn: {
-    marginTop: '1rem',
-    padding: '1rem',
-    background: '#38526A',
+    marginTop: '8px',
+    width: '100%',
+    padding: '0.95rem 1.2rem',
+    borderRadius: '14px',
+    background: 'linear-gradient(135deg, #2a5148 0%, #1f342f 100%)',
     color: '#fff',
     border: 'none',
-    borderRadius: '16px',
+    fontSize: '0.86rem',
+    letterSpacing: '0.18em',
+    textTransform: 'uppercase',
     fontWeight: 700,
-    fontSize: '1rem',
     cursor: 'pointer',
-    transition: 'opacity 0.15s, transform 0.1s',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '52px',
+    boxShadow: '0 14px 24px rgba(42,81,72,0.18)',
   },
   spinner: {
-    width: '18px',
-    height: '18px',
-    border: '2px solid rgba(255,255,255,0.3)',
-    borderTop: '2px solid #fff',
+    width: '16px',
+    height: '16px',
+    margin: '0 auto',
+    border: '2px solid rgba(255,255,255,0.35)',
+    borderTopColor: '#fff',
     borderRadius: '50%',
+    display: 'block',
     animation: 'spin 0.8s linear infinite',
-    display: 'inline-block',
   },
   footer: {
-    marginTop: '2rem',
-    fontSize: '0.88rem',
-    color: '#64748b',
+    marginTop: '1.25rem',
+    fontSize: '0.85rem',
+    color: '#5d564f',
     textAlign: 'center',
   },
   link: {
-    color: '#2D9CDB',
-    fontWeight: 600,
+    color: '#1f3d36',
     textDecoration: 'none',
-  },
-  demoHint: {
-    marginTop: '1.5rem',
-    padding: '0.75rem 1rem',
-    background: '#f0f9ff',
-    border: '1px solid #bae6fd',
-    borderRadius: '10px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  demoLabel: {
-    fontSize: '0.75rem',
-    color: '#0369a1',
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-  },
-  demoCode: {
-    fontSize: '0.82rem',
-    color: '#0369a1',
-    background: '#e0f2fe',
-    padding: '2px 8px',
-    borderRadius: '6px',
-    fontFamily: "'Source Code Pro', monospace",
+    fontWeight: 700,
   },
 };
 

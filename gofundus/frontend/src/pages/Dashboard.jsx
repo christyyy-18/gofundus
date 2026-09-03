@@ -146,7 +146,7 @@ const Dashboard = () => {
                   color: '#fff', fontSize: '0.7rem', fontWeight: 700,
                   padding: '4px 10px', borderRadius: '99px',
                 }}>
-                  📍 {inst.district}
+                  {inst.district}
                 </div>
                 <div style={{
                   position: 'absolute', bottom: '10px', left: '10px',
@@ -175,7 +175,7 @@ const Dashboard = () => {
                     padding: '0.6rem 0.8rem', background: '#f8fafc', borderRadius: '10px',
                     fontSize: '0.78rem', marginBottom: '0.85rem', border: '1px solid #e2e8f0',
                   }}>
-                    <span><strong>👶 {inst.children_count}</strong> children</span>
+                    <span><strong>{inst.children_count}</strong> children</span>
                     <span style={{ color: '#d97706', fontWeight: 700 }}>GHS {Number(inst.funding_gap).toLocaleString()} gap</span>
                   </div>
 
@@ -230,7 +230,7 @@ const Dashboard = () => {
                 alignItems: 'center', justifyContent: 'center',
               }}
             >
-              ✕
+              Close
             </button>
 
             {/* Modal Hero Image */}
@@ -248,7 +248,7 @@ const Dashboard = () => {
               <div style={{ position: 'absolute', bottom: '16px', left: '20px', right: '20px', color: '#fff' }}>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '6px', flexWrap: 'wrap' }}>
                   <span style={{ background: '#2D9CDB', padding: '3px 10px', borderRadius: '99px', fontSize: '0.72rem', fontWeight: 700 }}>
-                    📍 {selectedInst.district}
+                    {selectedInst.district}
                   </span>
                   {selectedInst.established_year && (
                     <span style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)', padding: '3px 10px', borderRadius: '99px', fontSize: '0.72rem', fontWeight: 700 }}>
@@ -315,7 +315,6 @@ const Dashboard = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', fontSize: '0.85rem' }}>
                   {selectedInst.contact_email && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span>✉️</span>
                       <a href={`mailto:${selectedInst.contact_email}`} style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
                         {selectedInst.contact_email}
                       </a>
@@ -352,7 +351,7 @@ const Dashboard = () => {
                     boxShadow: '0 4px 14px rgba(45,156,219,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                   }}
                 >
-                  <span>🤝 Connect & Support Home</span>
+                  <span>Connect & Support Home</span>
                 </button>
               </div>
 

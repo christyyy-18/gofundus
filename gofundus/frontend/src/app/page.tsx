@@ -1,401 +1,181 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import KumasiMap from '../components/KumasiMap';
-import InstitutionModal from '../components/InstitutionModal';
-import AdminDashboard from '../components/AdminDashboard';
-import { fetchInstitutions, matchDonorStatement, fetchClusters } from '../services/api';
-import { Institution, MatchResult, MatchResponse } from '../types';
-import { Sparkles, MapPin, Search, RefreshCw, Users, DollarSign, Filter, ChevronRight, Layers, ArrowUpRight, AlertCircle, HeartHandshake, Map } from 'lucide-react';
-
-const SAMPLE_DONOR_QUERIES = [
-  "I want to donate to orphanages in Kumasi that support infant care, baby milk formula, and newborn pediatric healthcare.",
-  "Looking to fund primary education, computer literacy, IT equipment, and school fees for street children in Ayigya or Oforikrom.",
-  "I care deeply about special needs orphans, disabled children, wheelchairs, and physical therapy facilities in Kumasi.",
-  "Seeking urgent orphanages near Suame or Bantama that offer technical vocational skill training, auto mechanics, and youth empowerment."
+const programs = [
+  { name: 'Education', image: 'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Health', image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Family', image: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?auto=format&fit=crop&w=900&q=80' },
 ];
 
-const KUMASI_DISTRICTS = [
-  "All Districts", "Asokwa", "Ayigya", "Ayigya Zongo", "Bantama", "Oforikrom", "Suame", "Kwadaso", "Santasi", "Aboabo", "Manhyia", "North Suntreso", "Sofoline", "Kronum"
+const stats = [
+  { label: 'Families helped', value: '12k+' },
+  { label: 'Active donors', value: '4.8k' },
+  { label: 'Community projects', value: '240' },
 ];
+
+const quickTags = ['Education', 'Healthcare', 'Child welfare', 'Youth support'];
 
 export default function Home() {
-  const [activeView, setActiveView] = useState<'donor' | 'admin'>('donor');
-  const [institutions, setInstitutions] = useState<Institution[]>([]);
-  const [clusterInfo, setClusterInfo] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Search & Match state
-  const [statementText, setStatementText] = useState('');
-  const [selectedDistrict, setSelectedDistrict] = useState('All Districts');
-  const [matchResponse, setMatchResponse] = useState<MatchResponse | null>(null);
-  const [isMatching, setIsMatching] = useState(false);
-  const [activeTab, setActiveTab] = useState<'list' | 'map'>('list');
-
-  // Selected Modal
-  const [selectedInstitution, setSelectedInstitution] = useState<Institution | null>(null);
-  const [selectedMatchInfo, setSelectedMatchInfo] = useState<MatchResult | null>(null);
-
-  const loadData = async () => {
-    setLoading(true);
-    const data = await fetchInstitutions();
-    setInstitutions(data);
-    const clusters = await fetchClusters();
-    setClusterInfo(clusters);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const handleMatchSubmit = async (textToMatch?: string) => {
-    const text = textToMatch || statementText;
-    if (!text.trim()) return;
-    setIsMatching(true);
-    const response = await matchDonorStatement(text);
-    setMatchResponse(response);
-    setIsMatching(false);
-  };
-
-  const filteredInstitutions = institutions.filter(inst => {
-    if (selectedDistrict !== 'All Districts' && inst.district !== selectedDistrict) return false;
-    return true;
-  });
-
   return (
-    <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
-      
-      {/* Navigation Bar */}
-      <Navbar activeView={activeView} onToggleView={setActiveView} />
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-8 space-y-8">
-        
-        {activeView === 'admin' ? (
-          <AdminDashboard institutions={institutions} onRefresh={loadData} />
-        ) : (
-          <>
-            {/* Hero Section: AI Semantic Match Input */}
-            <section className="relative p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/90 to-blue-950/40 border border-slate-800 shadow-2xl overflow-hidden">
-              <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-              
-              <div className="relative z-10 max-w-3xl space-y-4">
-                
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-inner">
-                  <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
-                  <span>AI Semantic Cause Matching Engine</span>
-                </div>
-
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                  Connect Directly with Ghanaian Orphanages in <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">Kumasi</span>
-                </h1>
-
-                <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                  Describe your charitable interests in plain English. Our TF-IDF vectorizer and transparent urgency priority engine match your intent against real operational needs across Kumasi orphanages.
-                </p>
-
-                {/* Search Textarea Box */}
-                <div className="pt-2">
-                  <div className="relative p-2 bg-slate-950/90 border border-slate-700/80 rounded-2xl shadow-xl focus-within:border-blue-500 transition-all">
-                    <textarea
-                      rows={3}
-                      value={statementText}
-                      onChange={(e) => setStatementText(e.target.value)}
-                      placeholder="e.g., 'I want to support infant care, baby milk formula, and newborn pediatric healthcare in Kumasi...'"
-                      className="w-full bg-transparent px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none resize-none"
-                    />
-                    
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 px-2">
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-emerald-400" />
-                        Target Region: Kumasi Metropolitan Area
-                      </span>
-
-                      <button
-                        onClick={() => handleMatchSubmit()}
-                        disabled={isMatching || !statementText.trim()}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50"
-                      >
-                        {isMatching ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                            <span>Computing Matches...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-4 h-4" />
-                            <span>Find AI Matched Orphanages</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sample Prompt Chips */}
-                <div className="space-y-2 pt-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">
-                    Quick Sample Interest Queries:
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {SAMPLE_DONOR_QUERIES.map((query, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setStatementText(query);
-                          handleMatchSubmit(query);
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-blue-900/40 border border-slate-700/60 text-[11px] text-slate-300 hover:text-white transition-all text-left"
-                      >
-                        "{query.slice(0, 48)}..."
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
+    <div className="min-h-screen bg-[#141414] px-3 py-5 md:px-6 md:py-8">
+      <div className="mx-auto max-w-[1220px] rounded-[42px] bg-[#2f2f2f] p-3 shadow-[0_50px_90px_rgba(0,0,0,0.38)] md:p-4">
+        <div className="rounded-[34px] bg-[#f7f1ea] p-3 md:p-5">
+          <header className="mb-8 flex items-center justify-between px-2 md:px-4">
+            <div className="flex items-center gap-3 text-[#2d2a2a]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#cf9c5d] text-sm font-bold text-white shadow-sm">
+                G
               </div>
-            </section>
-
-            {/* K-Means Geospatial Cluster Summary Banner */}
-            {clusterInfo && (
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-300">
-                <div className="flex items-center gap-2">
-                  <Map className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>
-                    <strong>Geospatial K-Means Clustering:</strong> {clusterInfo.optimal_k || 2} Clusters Formed Across Kumasi
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[11px]">
-                    Silhouette Quality Score: {clusterInfo.silhouette_score || 0.4817}
-                  </span>
-                  <span className="text-slate-500 hidden md:inline">• Validated Cluster Distribution</span>
-                </div>
-              </div>
-            )}
-
-            {/* Results Header & Filter Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-b border-slate-800 pb-4">
-              
               <div>
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  {matchResponse ? (
-                    <>
-                      <Sparkles className="w-5 h-5 text-emerald-400" />
-                      <span>AI Semantic Match Results ({matchResponse.total_matched})</span>
-                    </>
-                  ) : (
-                    <>
-                      <Layers className="w-5 h-5 text-blue-400" />
-                      <span>Registered Kumasi Orphanages ({filteredInstitutions.length})</span>
-                    </>
-                  )}
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {matchResponse
-                    ? `Ranked by similarity score & transparent urgency priority logic.`
-                    : `Browse all institutional cause descriptions and verified need indicators.`}
-                </p>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#857b71]">Gainlove</div>
+                <div className="text-[0.7rem] font-medium text-[#463f39]">Global justice network</div>
               </div>
-
-              <div className="flex items-center gap-3">
-                {/* District Filter */}
-                <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
-                  <Filter className="w-3.5 h-3.5 text-slate-400" />
-                  <select
-                    value={selectedDistrict}
-                    onChange={(e) => setSelectedDistrict(e.target.value)}
-                    className="bg-transparent text-slate-200 font-medium focus:outline-none"
-                  >
-                    {KUMASI_DISTRICTS.map(d => (
-                      <option key={d} value={d} className="bg-slate-900 text-slate-200">
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* View Switcher: List vs Map */}
-                <div className="flex items-center p-1 bg-slate-900 border border-slate-800 rounded-xl">
-                  <button
-                    onClick={() => setActiveTab('list')}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                      activeTab === 'list' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Card Grid
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('map')}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                      activeTab === 'map' ? 'bg-slate-800 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Interactive Map
-                  </button>
-                </div>
-              </div>
-
             </div>
 
-            {/* Display Content: Card Grid or Map */}
-            {activeTab === 'map' ? (
-              <KumasiMap
-                institutions={filteredInstitutions}
-                matches={matchResponse ? matchResponse.matches : []}
-                onSelectInstitution={(inst) => {
-                  setSelectedInstitution(inst);
-                  const m = matchResponse?.matches.find(item => item.institution.id === inst.id);
-                  setSelectedMatchInfo(m || null);
-                }}
-                height="540px"
-              />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                {matchResponse ? (
-                  matchResponse.matches.map((item) => (
-                    <div
-                      key={item.institution.id}
-                      className="group relative p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-blue-500/60 shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
-                    >
-                      <div>
-                        {/* Top Badges */}
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            RANK #{item.rank} MATCH ({Math.round(item.final_score * 100)}%)
-                          </span>
-                          <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-slate-500" />
-                            {item.distance_km} km away
-                          </span>
-                        </div>
+            <nav className="hidden items-center gap-7 text-[11px] font-medium uppercase tracking-[0.18em] text-[#655e57] md:flex">
+              <a href="#" className="transition hover:text-[#1b1b1b]">Programs</a>
+              <a href="#" className="transition hover:text-[#1b1b1b]">Stories</a>
+              <a href="#" className="transition hover:text-[#1b1b1b]">Impact</a>
+              <a href="#" className="transition hover:text-[#1b1b1b]">Contact</a>
+            </nav>
 
-                        <h3 className="text-lg font-bold text-slate-100 leading-snug group-hover:text-blue-400 transition-colors mb-1">
-                          {item.institution.name}
-                        </h3>
-                        <p className="text-xs text-slate-400 mb-3 font-medium">📍 {item.institution.district} District</p>
+            <button className="rounded-full bg-[#233e37] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_25px_rgba(35,62,55,0.22)] transition hover:-translate-y-0.5">
+              Donate
+            </button>
+          </header>
 
-                        {/* Operational Indicators */}
-                        <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 mb-4 text-xs">
-                          <div>
-                            <span className="text-[10px] text-slate-500 block">Children in Care</span>
-                            <span className="font-bold text-slate-200">{item.institution.children_count} Kids</span>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-500 block">Funding Gap</span>
-                            <span className="font-bold text-red-400">GHS {Number(item.institution.funding_gap).toLocaleString()}</span>
-                          </div>
-                        </div>
-
-                        <p className="text-xs leading-relaxed text-slate-300 line-clamp-3 mb-4">
-                          {item.institution.cause_description}
-                        </p>
-                      </div>
-
-                      <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                        <span className="text-[11px] text-amber-400 font-medium">
-                          {item.institution.urgency_days_since_donation}d since last donation
-                        </span>
-                        <button
-                          onClick={() => {
-                            setSelectedInstitution(item.institution);
-                            setSelectedMatchInfo(item);
-                          }}
-                          className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300"
-                        >
-                          <span>Full Profile</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  filteredInstitutions.map((inst) => (
-                    <div
-                      key={inst.id}
-                      className="group relative p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 shadow-xl transition-all flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-300">
-                            {inst.district}
-                          </span>
-                          {inst.urgency_days_since_donation > 90 && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">
-                              HIGH URGENCY
-                            </span>
-                          )}
-                        </div>
-
-                        <h3 className="text-lg font-bold text-slate-100 group-hover:text-blue-400 transition-colors mb-1">
-                          {inst.name}
-                        </h3>
-                        <p className="text-xs text-slate-400 mb-3">📍 {inst.address}</p>
-
-                        <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 mb-4 text-xs">
-                          <div>
-                            <span className="text-[10px] text-slate-500 block">Children in Care</span>
-                            <span className="font-bold text-slate-200">{inst.children_count} Kids</span>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-500 block">Funding Gap</span>
-                            <span className="font-bold text-red-400">GHS {Number(inst.funding_gap).toLocaleString()}</span>
-                          </div>
-                        </div>
-
-                        <p className="text-xs leading-relaxed text-slate-300 line-clamp-3 mb-4">
-                          {inst.cause_description}
-                        </p>
-                      </div>
-
-                      <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                        <span className="text-[11px] text-slate-400">
-                          {inst.urgency_days_since_donation} days without donation
-                        </span>
-                        <button
-                          onClick={() => {
-                            setSelectedInstitution(inst);
-                            setSelectedMatchInfo(null);
-                          }}
-                          className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300"
-                        >
-                          <span>View Needs</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-
+          <main className="grid items-center gap-8 lg:grid-cols-[1.08fr_0.92fr]">
+            <div className="space-y-7 px-2 md:px-4">
+              <div className="inline-flex items-center rounded-full border border-[#e3cdb3] bg-[#fff9f3] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#7d6b5a] shadow-sm">
+                Compassion • clarity • impact
               </div>
-            )}
-          </>
-        )}
 
-      </main>
+              <div className="space-y-4">
+                <h1 className="max-w-[560px] font-serif text-[3.2rem] leading-[0.9] tracking-[-0.08em] text-[#241f1d] sm:text-[4.3rem] lg:text-[5rem]">
+                  Justice begins where inequality ends.
+                </h1>
+                <p className="max-w-[480px] text-base leading-7 text-[#5d564f] md:text-lg">
+                  We help donors reach real community needs with transparency, trust, and beautiful, measurable change.
+                </p>
+              </div>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-6 mt-12 bg-slate-950/60 text-xs text-slate-500 text-center">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 GoFundUs — AI-Powered Location-Aware Donation Matching Platform for Kumasi Metropolitan Area.</p>
-          <div className="flex items-center gap-4 text-slate-400">
-            <span>Chapter 3 Methodology Implementation</span>
-            <span>•</span>
-            <span>Kumasi Orphanage Dataset</span>
-          </div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <button className="rounded-full bg-[#2a5148] px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_18px_28px_rgba(42,81,72,0.22)] transition hover:-translate-y-0.5 hover:bg-[#23453d]">
+                  Become a donor
+                </button>
+                <button className="rounded-full border border-[#d8c8b8] bg-white px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#3f3732] shadow-sm transition hover:-translate-y-0.5 hover:border-[#c39a68] hover:text-[#221f1d]">
+                  See projects
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {quickTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border border-[#e7d7c4] bg-[#fffaf4] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6a5c4d]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative px-2 md:px-4">
+              <div className="animate-float relative mx-auto max-w-[480px] rounded-[30px] bg-[#f0e5d8] p-3 shadow-[0_30px_65px_rgba(79,62,42,0.12)]">
+                <div className="absolute -left-10 top-10 h-24 w-24 rounded-full bg-[#d7b792]/70 blur-3xl" />
+                <div className="absolute -right-8 top-12 h-28 w-28 rounded-full bg-[#f0cb7a]/70 blur-3xl" />
+                <div className="absolute inset-x-14 bottom-4 h-20 rounded-full bg-[#f5e9d3]/80 blur-2xl" />
+
+                <div className="relative overflow-hidden rounded-[24px] bg-[#f4ecdf] p-3">
+                  <div className="mb-4 flex items-center justify-between px-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#766d63]">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#c98c52]" />
+                      <span>Gainlove</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#d9c5a5]" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#d9c5a5]" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#d9c5a5]" />
+                    </div>
+                  </div>
+
+                  <div className="relative flex items-start justify-between gap-3 px-1">
+                    <div className="max-w-[175px] pt-2 text-[#2c2a2a]">
+                      <p className="font-serif text-[2.5rem] leading-[0.8] tracking-[-0.07em]">
+                        Justice
+                        <span className="mt-1 block">begins where</span>
+                        inequality
+                        <span className="mt-1 block">ends</span>
+                      </p>
+                    </div>
+
+                    <div className="relative mt-2 h-[185px] w-[175px]">
+                      <div className="absolute inset-0 rounded-[28px] bg-[#dcc29e]/60 blur-[2px]" />
+                      <div className="absolute inset-x-4 top-4 h-[128px] rounded-[30px] bg-[#f1d8a2] opacity-90" />
+                      <div className="absolute inset-x-2 top-5 h-[145px] rounded-[28px] border-[6px] border-[#f5f0ea] bg-[#e6c9a8]" />
+                      <div
+                        className="absolute inset-x-3 top-7 h-[136px] rounded-[24px] bg-cover bg-center"
+                        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=900&q=80)' }}
+                      />
+                      <div className="absolute -left-2 top-10 h-12 w-12 rounded-full bg-[#d26045] opacity-90" />
+                      <div className="absolute -right-1 top-16 h-8 w-8 rounded-full bg-[#f2c261] opacity-90" />
+                      <div className="absolute left-2 bottom-0 h-10 w-10 rounded-full bg-[#4fa8a6] opacity-80" />
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 mt-4 rounded-[18px] bg-[#f8f4f0] px-3 py-3 shadow-[0_8px_20px_rgba(99,79,56,0.07)]">
+                    <div className="mb-3 text-center text-[10px] font-semibold uppercase tracking-[0.26em] text-[#8d7f72]">
+                      Our Programs
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {programs.map((program) => (
+                        <div key={program.name} className="text-center transition duration-200 hover:-translate-y-1">
+                          <div className="mb-2 overflow-hidden rounded-[12px] bg-[#e9d7c1] shadow-sm">
+                            <div
+                              className="h-16 w-full bg-cover bg-center"
+                              style={{ backgroundImage: `url(${program.image})` }}
+                            />
+                          </div>
+                          <div className="text-[9px] font-medium uppercase tracking-[0.08em] text-[#5e574f]">
+                            {program.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="animate-drift absolute -bottom-8 left-6 z-20 w-[61%] rounded-[18px] bg-white/90 p-3 shadow-[0_18px_34px_rgba(80,66,52,0.12)] backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 overflow-hidden rounded-full border-[3px] border-[#f2e8dc] bg-[#d8c5ad]">
+                    <img
+                      src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80"
+                      alt="Volunteer"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#8b7c6e]">Supporters</div>
+                    <div className="mt-1 font-serif text-[1.5rem] leading-none tracking-[-0.06em] text-[#272320]">2020 fundraisers</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+
+          <section className="mt-10 grid gap-4 md:grid-cols-3">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-[22px] border border-[#eadfce] bg-[#fffaf5] p-5 shadow-[0_10px_30px_rgba(75,61,45,0.05)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(75,61,45,0.08)]"
+              >
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a7b6d]">{stat.label}</div>
+                <div className="mt-3 font-serif text-[2.5rem] leading-none tracking-[-0.06em] text-[#1f1b1a]">{stat.value}</div>
+              </div>
+            ))}
+          </section>
         </div>
-      </footer>
-
-      {/* Modal Popup */}
-      <InstitutionModal
-        institution={selectedInstitution}
-        matchInfo={selectedMatchInfo}
-        onClose={() => setSelectedInstitution(null)}
-      />
-
+      </div>
     </div>
   );
 }

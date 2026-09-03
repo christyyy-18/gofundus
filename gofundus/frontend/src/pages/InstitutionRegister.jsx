@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
+import { apiFetch } from '../services/api';
+import { LockKeyhole, ShieldCheck } from 'lucide-react';
 
-const API = 'http://127.0.0.1:8000/api';
+
+
 
 /* ── Password strength scorer ── */
 const scorePassword = (pw) => {
@@ -78,7 +81,7 @@ export default function InstitutionRegister() {
     if (!strongEnough) { addToast('Please choose a stronger password.', 'error'); return; }
     setLoading(true);
     try {
-      const res = await fetch(`${API}/auth/register/`, {
+      const res = await apiFetch('/auth/register/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,15 +89,16 @@ export default function InstitutionRegister() {
           email,
           password,
           role: 'institution_admin',
-          // Extra institution metadata stored locally until backend supports it
+          first_name: adminName,
+          institution_name: orgName,
         }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || 'Registration failed');
 
       // Store session
-      localStorage.setItem('token', data.token || data.key || 'session');
       localStorage.setItem('user', JSON.stringify(data.user || { username, role: 'institution_admin' }));
+      window.dispatchEvent(new Event('auth-change'));
 
       // Store institution details locally (keyed by username) for the portal
       localStorage.setItem(`institution_${username}`, JSON.stringify({
@@ -193,7 +197,7 @@ export default function InstitutionRegister() {
 
               {/* Verification row */}
               <div style={s.verifyBox}>
-                <div style={s.verifyIcon}>🔒</div>
+                <div style={s.verifyIcon}><LockKeyhole size={20} /></div>
                 <div style={{ flex: 1 }}>
                   <div style={s.verifyTitle}>Government Registration Number</div>
                   <div style={s.verifySub}>
@@ -364,7 +368,7 @@ export default function InstitutionRegister() {
 
               {/* Security notice */}
               <div style={s.securityNote}>
-                <span style={{ fontSize: '0.9rem' }}>🛡️</span>
+                <ShieldCheck size={15} />
                 <span>
                   Your account is protected with secure session tokens. 
                   Never share your password. GoFundUs staff will never ask for it.
@@ -434,7 +438,10 @@ const Step = ({ n, active, done, label }) => (
 const s = {
   page: {
     minHeight: '100vh',
-    background: '#f8fafc',
+    background: 'linear-gradient(135deg, rgba(23,23,23,0.72) 0%, rgba(23,23,23,0.65) 100%), url("https://images.unsplash.com/photo-1503454537688-e6694d91d4a9?auto=format&fit=crop&w=1400&q=60")',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -447,7 +454,7 @@ const s = {
     position: 'absolute',
     width: '500px', height: '500px',
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(56,82,106,0.07) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, rgba(220,177,122,0.15) 0%, transparent 70%)',
     top: '-120px', left: '-150px',
     pointerEvents: 'none',
   },
@@ -470,14 +477,19 @@ const s = {
     width: '42px', height: '42px',
     borderRadius: '10px',
     objectFit: 'cover',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    boxShadow: '0 0 0 2px rgba(207,156,93,0.4), 0 8px 16px rgba(207,156,93,0.35)',
+    border: '2px solid #cf9c5d',
   },
   brand: {
     fontSize: '1.3rem', fontWeight: 800,
-    color: '#38526A', letterSpacing: '-0.03em', lineHeight: 1,
+    background: 'linear-gradient(135deg, #f7f1ea 0%, #f2c261 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    letterSpacing: '-0.03em', lineHeight: 1,
   },
   brandSub: {
-    fontSize: '0.75rem', color: '#64748b', marginTop: '2px',
+    fontSize: '0.75rem', color: '#8d7f72', marginTop: '2px',
   },
 
   /* Progress */
@@ -492,7 +504,7 @@ const s = {
   progressLine: {
     flex: 1,
     height: '2px',
-    background: '#e2e8f0',
+    background: '#e6d6bf',
     marginTop: '15px',
     alignSelf: 'flex-start',
     marginInline: '0.4rem',
@@ -500,19 +512,19 @@ const s = {
 
   /* Card */
   card: {
-    background: '#fff',
-    border: '1.5px solid #e8ecf0',
+    background: '#f7f1ea',
+    border: '1px solid #efe5d8',
     borderRadius: '20px',
     padding: '2.5rem 2.25rem',
     width: '100%',
-    boxShadow: '0 4px 24px rgba(15,23,42,0.07)',
+    boxShadow: '0 28px 52px rgba(0,0,0,0.32)',
   },
   cardTitle: {
-    fontSize: '1.35rem', fontWeight: 800, color: '#0f172a',
+    fontSize: '1.35rem', fontWeight: 800, color: '#241f1d',
     margin: '0 0 0.4rem', letterSpacing: '-0.02em',
   },
   cardSub: {
-    fontSize: '0.875rem', color: '#64748b',
+    fontSize: '0.875rem', color: '#5e574f',
     margin: '0 0 1.75rem', lineHeight: 1.55,
   },
 
@@ -523,9 +535,9 @@ const s = {
     width: '100%',
     padding: '0.75rem 0.95rem',
     borderRadius: '10px',
-    border: '1.5px solid #e2e8f0',
-    background: '#f8fafc',
-    color: '#0f172a',
+    border: '1.5px solid #e6d6bf',
+    background: '#fcfaf7',
+    color: '#241f1d',
     fontSize: '0.9rem',
     fontFamily: 'inherit',
     outline: 'none',
@@ -538,13 +550,13 @@ const s = {
     display: 'flex',
     gap: '0.85rem',
     padding: '1rem 1.1rem',
-    background: '#f0f6ff',
-    border: '1.5px solid #bfdbfe',
+    background: '#f5f0eb',
+    border: '1.5px solid #e6d6bf',
     borderRadius: '12px',
   },
   verifyIcon: { fontSize: '1.3rem', flexShrink: 0, marginTop: '2px' },
-  verifyTitle: { fontSize: '0.85rem', fontWeight: 700, color: '#1e3a5f', marginBottom: '0.2rem' },
-  verifySub: { fontSize: '0.78rem', color: '#475569', lineHeight: 1.55 },
+  verifyTitle: { fontSize: '0.85rem', fontWeight: 700, color: '#5e574f', marginBottom: '0.2rem' },
+  verifySub: { fontSize: '0.78rem', color: '#8d7f72', lineHeight: 1.55 },
 
   /* Declaration */
   declaration: {
@@ -552,11 +564,11 @@ const s = {
     alignItems: 'flex-start',
     gap: '0.65rem',
     padding: '0.9rem 1rem',
-    background: '#fafafa',
-    border: '1.5px solid #e2e8f0',
+    background: '#faf6f1',
+    border: '1.5px solid #e6d6bf',
     borderRadius: '10px',
     fontSize: '0.82rem',
-    color: '#374151',
+    color: '#5e574f',
     lineHeight: 1.55,
     cursor: 'pointer',
   },
@@ -567,17 +579,17 @@ const s = {
     alignItems: 'flex-start',
     gap: '0.6rem',
     padding: '0.8rem 1rem',
-    background: '#f0fdf4',
-    border: '1.5px solid #bbf7d0',
+    background: '#f5f0eb',
+    border: '1.5px solid #e6d6bf',
     borderRadius: '10px',
     fontSize: '0.78rem',
-    color: '#166534',
+    color: '#5e574f',
     lineHeight: 1.55,
   },
 
   btn: {
     padding: '0.85rem',
-    background: '#38526A',
+    background: 'linear-gradient(135deg, #2a5148 0%, #1f342f 100%)',
     color: '#fff',
     border: 'none',
     borderRadius: '12px',
@@ -591,11 +603,12 @@ const s = {
     minHeight: '48px',
     marginTop: '0.25rem',
     transition: 'opacity 0.15s',
+    boxShadow: '0 10px 20px rgba(42,81,72,0.2)',
   },
   backBtn: {
     background: 'none',
     border: 'none',
-    color: '#64748b',
+    color: '#8d7f72',
     fontWeight: 600,
     fontSize: '0.82rem',
     cursor: 'pointer',
@@ -619,9 +632,9 @@ const s = {
     display: 'inline-block',
   },
   footer: {
-    fontSize: '0.82rem', color: '#64748b', textAlign: 'center',
+    fontSize: '0.82rem', color: '#5e574f', textAlign: 'center',
   },
   link: {
-    color: '#38526A', fontWeight: 600, textDecoration: 'none',
+    color: '#1f3d36', fontWeight: 600, textDecoration: 'none',
   },
 };

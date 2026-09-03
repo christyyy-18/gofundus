@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
+import { apiFetch } from '../services/api';
+import { AlertTriangle, BookOpen, CheckCircle, CircleUserRound, Handshake, Search, ShieldCheck, X } from 'lucide-react';
 
 /* ─── Help categories for donors ─── */
 const CATEGORIES = [
   {
-    icon: '🚀',
+    icon: BookOpen,
     title: 'Getting Started',
     desc: 'Learn how to create your account, find orphanages, and navigate GoFundUs.',
   },
   {
-    icon: '🔒',
+    icon: ShieldCheck,
     title: 'Security & Protection',
     desc: 'Keep your account safe with our privacy measures and verified homes.',
   },
   {
-    icon: '🤝',
+    icon: Handshake,
     title: 'Matching & Discovery',
     desc: 'How our AI matching works and how to find homes that align with your interests.',
   },
   {
-    icon: '👤',
+    icon: CircleUserRound,
     title: 'Account & Preferences',
     desc: 'Manage your account settings, update profile details, and preferences.',
   },
@@ -63,6 +65,8 @@ export default function Support() {
   const [email, setEmail]   = useState('');
   const [msg, setMsg]       = useState('');
   const [sent, setSent]     = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError]   = useState('');
 
   const filtered = FAQS.filter(f =>
     !query.trim() ||
@@ -70,8 +74,13 @@ export default function Support() {
     f.a.toLowerCase().includes(query.toLowerCase())
   );
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
+    setSent(false);
+    setError('');
+    setSending(true);
+
+    // Always save to localStorage so it appears in the admin inbox
     const newInquiry = {
       id: Date.now(),
       date: new Date().toISOString().split('T')[0],
@@ -83,7 +92,30 @@ export default function Support() {
     };
     const existing = JSON.parse(localStorage.getItem('gofundus_system_inquiries') || '[]');
     localStorage.setItem('gofundus_system_inquiries', JSON.stringify([newInquiry, ...existing]));
-    setSent(true);
+
+    // Post to backend to trigger real emails
+    try {
+      const res = await apiFetch('/support/inquiry/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          message: msg,
+          source: 'Donor Support Page',
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || 'Server error — your inquiry was saved but email delivery may be delayed.');
+      }
+    } catch {
+      // Network offline or server down — ticket is still saved locally
+      setError('Could not reach the server. Your inquiry has been saved and will be processed when connectivity is restored.');
+    } finally {
+      setSending(false);
+      setSent(true);
+    }
   };
 
   return (
@@ -104,9 +136,9 @@ export default function Support() {
             onChange={e => setQuery(e.target.value)}
           />
           {query && (
-            <button onClick={() => setQuery('')} style={p.clearBtn}>✕</button>
+            <button onClick={() => setQuery('')} style={p.clearBtn} aria-label="Clear search"><X size={16} /></button>
           )}
-          <button style={p.searchBtn}>Search</button>
+          <button style={p.searchBtn}><Search size={16} /> Search</button>
         </div>
       </div>
 
@@ -114,7 +146,7 @@ export default function Support() {
       <div style={p.catGrid}>
         {CATEGORIES.map(c => (
           <div key={c.title} style={p.catCard}>
-            <div style={p.catIconWrap}>{c.icon}</div>
+            <div style={p.catIconWrap}><c.icon size={20} strokeWidth={1.8} /></div>
             <h3 style={p.catTitle}>{c.title}</h3>
             <p style={p.catDesc}>{c.desc}</p>
           </div>
@@ -159,12 +191,17 @@ export default function Support() {
 
           {sent ? (
             <div style={p.successBox}>
-              <span style={{ fontSize: '1.4rem' }}>✅</span>
+              <CheckCircle size={22} color="#15803d" aria-hidden="true" />
               <div>
                 <strong style={{ color: '#0f172a' }}>Message Received</strong>
                 <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: '#475569' }}>
                   Our team will follow up via email within 24 hours.
                 </p>
+                {error && (
+                  <p style={{ margin: '6px 0 0', fontSize: '0.78rem', color: '#b45309' }}>
+                    <AlertTriangle size={14} aria-hidden="true" /> {error}
+                  </p>
+                )}
               </div>
             </div>
           ) : (
@@ -181,7 +218,9 @@ export default function Support() {
                 <label style={p.label}>Message / Question</label>
                 <textarea style={{ ...p.input, minHeight: '120px', resize: 'vertical' }} value={msg} onChange={e => setMsg(e.target.value)} placeholder="How can we assist you today?" required />
               </div>
-              <button type="submit" style={p.btnPrimary}>Submit Inquiry</button>
+              <button type="submit" disabled={sending} style={{ ...p.btnPrimary, opacity: sending ? 0.6 : 1, cursor: sending ? 'wait' : 'pointer' }}>
+                {sending ? 'Sending…' : 'Submit Inquiry'}
+              </button>
             </form>
           )}
         </div>

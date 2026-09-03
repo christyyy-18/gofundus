@@ -168,7 +168,7 @@ const MatchResults = () => {
                         {inst.name}
                       </h2>
                       <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem', fontWeight: 500 }}>
-                        📍 {inst.district} · 👶 {inst.children_count} children · 💳 GHS {Number(inst.funding_gap).toLocaleString()} gap
+                        {inst.district} · {inst.children_count} children · GHS {Number(inst.funding_gap).toLocaleString()} gap
                       </p>
                       <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
                         {inst.cause_description.slice(0, 140)}…
@@ -243,7 +243,7 @@ const MatchResults = () => {
                 alignItems: 'center', justifyContent: 'center',
               }}
             >
-              ✕
+                        Close
             </button>
 
             {/* Photo Header */}
@@ -264,7 +264,7 @@ const MatchResults = () => {
                     #{selectedMatch.rank} Match ({Math.round(selectedMatch.final_score * 100)}% Score)
                   </span>
                   <span style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)', padding: '3px 10px', borderRadius: '99px', fontSize: '0.72rem', fontWeight: 700 }}>
-                    📍 {selectedMatch.institution.district}
+                    {selectedMatch.institution.district}
                   </span>
                 </div>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
@@ -336,7 +336,6 @@ const MatchResults = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', fontSize: '0.85rem' }}>
                   {selectedMatch.institution.contact_email && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span>✉️</span>
                       <a href={`mailto:${selectedMatch.institution.contact_email}`} style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
                         {selectedMatch.institution.contact_email}
                       </a>
@@ -373,7 +372,7 @@ const MatchResults = () => {
                     boxShadow: '0 4px 14px rgba(45,156,219,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                   }}
                 >
-                  <span>🤝 Connect & Support Home</span>
+                  <span>Connect & Support Home</span>
                 </button>
               </div>
 

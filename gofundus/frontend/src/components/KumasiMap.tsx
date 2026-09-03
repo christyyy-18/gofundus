@@ -73,7 +73,7 @@ export default function KumasiMap({
         font-weight: bold;
         font-size: 12px;
       ">
-        ${rank ? `#${rank}` : '🏠'}
+        ${rank ? `#${rank}` : '•'}
       </div>
     `;
 
@@ -134,7 +134,7 @@ export default function KumasiMap({
                       </div>
                     )}
                     <h3 className="font-bold text-base text-slate-900 leading-tight mb-1">{inst.name}</h3>
-                    <p className="text-xs text-slate-600 mb-2 font-medium">📍 District: {inst.district}</p>
+                    <p className="text-xs text-slate-600 mb-2 font-medium">District: {inst.district}</p>
 
                     <div className="grid grid-cols-2 gap-2 text-xs bg-slate-100 p-2 rounded-lg mb-3">
                       <div>

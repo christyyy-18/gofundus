@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
+import { apiFetch } from '../services/api';
+import { uploadProfilePhoto } from '../services/firebase';
 
 const CAUSES = [
   'Education', 'Healthcare', 'Nutrition', 'Shelter', 'Infant Care',
@@ -37,7 +39,7 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/register/', {
+      const res = await apiFetch('/auth/register/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -48,14 +50,21 @@ const Register = () => {
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || 'Registration failed');
 
-      // Persist photo locally keyed by username
-      if (photo) localStorage.setItem(`avatar_${username}`, photo);
+      if (photoFile) {
+        let remotePhotoUrl = null;
+        try {
+          remotePhotoUrl = await uploadProfilePhoto(photoFile, username);
+        } catch (uploadError) {
+          console.warn('Firebase photo upload failed; using local preview:', uploadError);
+        }
+        localStorage.setItem(`avatar_${username}`, remotePhotoUrl || photo);
+      }
 
       // Auto-login: store session data exactly like Login.jsx does
-      localStorage.setItem('token', data.token || data.key || 'session');
       localStorage.setItem('user', JSON.stringify(data.user || { username }));
+      window.dispatchEvent(new Event('auth-change'));
 
-      addToast('Account created! Welcome to GoFundUs 🎉', 'success');
+      addToast('Account created! Welcome to GoFundUs', 'success');
       if (role === 'institution_admin') {
         navigate('/orphanage-portal');
       } else {
@@ -212,7 +221,7 @@ const Register = () => {
 const Field = ({ label, id, children }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: 1, minWidth: 0 }}>
     <label htmlFor={id} style={{
-      fontSize: '0.72rem', fontWeight: 700, color: '#475569',
+      fontSize: '0.72rem', fontWeight: 700, color: '#766d63',
       letterSpacing: '0.05em', textTransform: 'uppercase',
     }}>
       {label}
@@ -225,7 +234,10 @@ const Field = ({ label, id, children }) => (
 const s = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(160deg, #f0f6ff 0%, #e8f4fd 50%, #f7f8fa 100%)',
+    background: 'linear-gradient(135deg, rgba(23,23,23,0.72) 0%, rgba(23,23,23,0.65) 100%), url("https://images.unsplash.com/photo-1503454537688-e6694d91d4a9?auto=format&fit=crop&w=1400&q=60")',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -237,7 +249,7 @@ const s = {
     position: 'absolute',
     width: '600px', height: '600px',
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(56,82,106,0.08) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, rgba(220,177,122,0.15) 0%, transparent 70%)',
     top: '-100px', right: '-150px',
     pointerEvents: 'none',
   },
@@ -265,20 +277,25 @@ const s = {
     height: '48px',
     objectFit: 'cover',
     borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    boxShadow: '0 0 0 3px rgba(207,156,93,0.4), 0 8px 16px rgba(207,156,93,0.35)',
+    border: '2px solid #cf9c5d',
+    position: 'relative',
   },
   logoFundUs: {
     fontSize: '1.8rem',
     fontWeight: 800,
-    color: '#38526A',
+    background: 'linear-gradient(135deg, #f7f1ea 0%, #f2c261 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
     letterSpacing: '-0.03em',
   },
 
   /* Card */
   card: {
-    background: '#ffffff',
-    border: '3px solid #ffffff',
-    boxShadow: '0 8px 48px rgba(30,58,95,0.14), 0 0 0 1px rgba(45,156,219,0.12)',
+    background: '#f7f1ea',
+    border: '1px solid #efe5d8',
+    boxShadow: '0 28px 52px rgba(0,0,0,0.32)',
     borderRadius: '24px',
     padding: '3.5rem 3rem',
     width: '100%',
@@ -294,8 +311,8 @@ const s = {
   avatarBtn: {
     width: '80px', height: '80px',
     borderRadius: '50%',
-    border: '3px dashed #cbd5e1',
-    background: '#f8fafc',
+    border: '3px dashed #d9c5a5',
+    background: '#faf6f1',
     cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden',
@@ -305,14 +322,14 @@ const s = {
   avatarImg: { width: '100%', height: '100%', objectFit: 'cover' },
   avatarPlaceholder: {
     fontSize: '1.8rem',
-    color: '#94a3b8',
+    color: '#b8a997',
     lineHeight: 1,
     fontWeight: 300,
   },
   avatarHint: {
     marginTop: '0.5rem',
     fontSize: '0.75rem',
-    color: '#94a3b8',
+    color: '#8d7f72',
   },
 
   /* Form */
@@ -322,9 +339,9 @@ const s = {
     width: '100%',
     padding: '0.85rem 1rem',
     borderRadius: '10px',
-    border: '1.5px solid #e2e8f0',
-    background: '#f8fafc',
-    color: '#0f172a',
+    border: '1.5px solid #e6d6bf',
+    background: '#fcfaf7',
+    color: '#241f1d',
     fontSize: '0.95rem',
     fontFamily: 'inherit',
     outline: 'none',
@@ -335,19 +352,19 @@ const s = {
   /* Causes */
   causesBlock: { display: 'flex', flexDirection: 'column', gap: '0.85rem' },
   causeLabel: {
-    fontSize: '0.72rem', fontWeight: 700, color: '#475569',
+    fontSize: '0.72rem', fontWeight: 700, color: '#766d63',
     letterSpacing: '0.05em', textTransform: 'uppercase',
   },
-  causeHint: { fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: '#94a3b8' },
+  causeHint: { fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: '#8d7f72' },
   causeGrid: {
     display: 'flex', flexWrap: 'wrap', gap: '0.5rem',
   },
   causeTag: {
     padding: '0.35rem 0.85rem',
     borderRadius: '99px',
-    border: '1.5px solid #e2e8f0',
-    background: '#f8fafc',
-    color: '#475569',
+    border: '1.5px solid #e6d6bf',
+    background: '#faf6f1',
+    color: '#5e574f',
     fontSize: '0.78rem',
     fontWeight: 500,
     cursor: 'pointer',
@@ -355,9 +372,9 @@ const s = {
     fontFamily: 'inherit',
   },
   causeTagActive: {
-    border: '1.5px solid #38526A',
-    background: '#f1f5f9',
-    color: '#38526A',
+    border: '1.5px solid #cf9c5d',
+    background: '#f5f0eb',
+    color: '#b8804d',
     fontWeight: 600,
   },
   checkDot: { fontSize: '0.7rem' },
@@ -365,7 +382,7 @@ const s = {
   /* Button */
   btn: {
     padding: '0.8rem',
-    background: '#38526A',
+    background: 'linear-gradient(135deg, #2a5148 0%, #1f342f 100%)',
     color: '#fff',
     border: 'none',
     borderRadius: '12px',
@@ -378,6 +395,7 @@ const s = {
     justifyContent: 'center',
     minHeight: '46px',
     marginTop: '0.25rem',
+    boxShadow: '0 10px 20px rgba(42,81,72,0.2)',
   },
   spinner: {
     width: '18px', height: '18px',
@@ -390,10 +408,10 @@ const s = {
   footer: {
     marginTop: '1.25rem',
     fontSize: '0.85rem',
-    color: '#64748b',
+    color: '#5e574f',
     textAlign: 'center',
   },
-  link: { color: '#38526A', fontWeight: 600, textDecoration: 'none' },
+  link: { color: '#1f3d36', fontWeight: 600, textDecoration: 'none' },
 };
 
 export default Register;

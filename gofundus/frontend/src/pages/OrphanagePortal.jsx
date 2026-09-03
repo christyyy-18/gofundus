@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
+import { apiFetch } from '../services/api';
+import { BadgeDollarSign, BookOpen, CheckCircle, CircleHelp, FileText, Handshake, HardHat, Home, Mail, Package, Pencil, ShieldCheck, Target, Users, Wallet, X } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 /* ─── Tab IDs ─── */
 const TABS = [
-  { id: 'profile',  icon: '🏠', label: 'Orphanage Profile' },
-  { id: 'funding',  icon: '💰', label: 'Funding Log' },
-  { id: 'donors',   icon: '🤝', label: 'Donor Tracker' },
-  { id: 'staff',    icon: '👷', label: 'Staff & Progress' },
-  { id: 'issues',   icon: '✉️', label: 'Messages & Issues' },
-  { id: 'help',     icon: '❓', label: 'Help & Support' },
+  { id: 'profile',  icon: Home, label: 'Orphanage Profile' },
+  { id: 'funding',  icon: Wallet, label: 'Funding Log' },
+  { id: 'donors',   icon: Handshake, label: 'Donor Tracker' },
+  { id: 'staff',    icon: HardHat, label: 'Staff & Progress' },
+  { id: 'issues',   icon: Mail, label: 'Messages & Issues' },
+  { id: 'help',     icon: CircleHelp, label: 'Help & Support' },
 ];
 
 /* ─── Helpers ─── */
@@ -44,7 +46,7 @@ export default function OrphanagePortal() {
     setUser(u);
 
     // Fetch institution linked to this user
-    fetch(`${API}/institutions/`)
+    fetch(`${API}/institutions/`, { credentials: 'include' })
       .then(r => r.json())
       .then(list => {
         // Try to find institution with matching username, otherwise use first as demo
@@ -65,7 +67,7 @@ export default function OrphanagePortal() {
       <aside style={s.sidebar}>
         {/* Brand */}
         <div style={s.sidebarBrand}>
-          <div style={s.sidebarLogo}>🏡</div>
+          <div style={s.sidebarLogo}><Home size={20} /></div>
           <div>
             <div style={s.sidebarTitle}>{institution?.name || 'My Orphanage'}</div>
             <div style={s.sidebarSub}>{institution?.district || 'Kumasi'}</div>
@@ -85,7 +87,7 @@ export default function OrphanagePortal() {
                 ...(activeTab === tab.id ? s.sidebarLinkActive : {}),
               }}
             >
-              <span style={s.sidebarIcon}>{tab.icon}</span>
+              <span style={s.sidebarIcon}><tab.icon size={17} /></span>
               <span>{tab.label}</span>
             </button>
           ))}
@@ -159,7 +161,7 @@ function ProfileTab({ institution, setInst, addToast, user }) {
     setSaving(true);
     try {
       if (institution?.id) {
-        const res = await fetch(`${API}/institutions/${institution.id}/`, {
+        const res = await apiFetch(`/institutions/${institution.id}/`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -203,10 +205,10 @@ function ProfileTab({ institution, setInst, addToast, user }) {
               {form.name || 'Your Orphanage'}
             </h2>
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
-              <Chip bg="rgba(255,255,255,0.2)" color="#fff">📍 {form.district}</Chip>
-              <Chip bg="rgba(255,255,255,0.2)" color="#fff">👶 {form.children_count} children</Chip>
-              <Chip bg="#fef08a" color="#854d0e">🚨 Most Lacking: {form.most_lacking_need}</Chip>
-              <Chip bg="rgba(255,255,255,0.2)" color="#fff">💳 Gap: {fmtGHS(form.funding_gap)}</Chip>
+              <Chip bg="rgba(255,255,255,0.2)" color="#fff">{form.district}</Chip>
+              <Chip bg="rgba(255,255,255,0.2)" color="#fff">{form.children_count} children</Chip>
+              <Chip bg="#fef08a" color="#854d0e">Most Lacking: {form.most_lacking_need}</Chip>
+              <Chip bg="rgba(255,255,255,0.2)" color="#fff">Gap: {fmtGHS(form.funding_gap)}</Chip>
             </div>
           </div>
         </div>
@@ -214,7 +216,7 @@ function ProfileTab({ institution, setInst, addToast, user }) {
 
       {/* Edit form */}
       <div style={s.card}>
-        <SectionTitle icon="✏️">Edit Orphanage Details</SectionTitle>
+        <SectionTitle icon={Pencil}>Edit Orphanage Details</SectionTitle>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1rem' }}>
           <div style={s.formGrid2}>
             <FormField label="Orphanage Name">
@@ -237,12 +239,12 @@ function ProfileTab({ institution, setInst, addToast, user }) {
                 value={form.most_lacking_need}
                 onChange={e => field('most_lacking_need', e.target.value)}
               >
-                <option value="Food & Groceries">🍲 Food & Groceries (Grains, Oil, Milk, Canned Goods)</option>
-                <option value="Clothing & Footwear">👕 Clothing & Footwear (Children's clothes, Shoes, Uniforms)</option>
-                <option value="Educational Supplies">📚 Educational Supplies (Books, Stationery, Tuition)</option>
-                <option value="Healthcare & Hygiene">🏥 Healthcare & Medical (First aid, Toiletries, Medicine)</option>
-                <option value="Bedding & Housing">🛏️ Bedding & Shelter (Mattresses, Blankets, Repairs)</option>
-                <option value="Utilities & Operations">⚡ Utilities & Operating Funds (Electricity, Water, Rent)</option>
+                <option value="Food & Groceries">Food & Groceries (Grains, Oil, Milk, Canned Goods)</option>
+                <option value="Clothing & Footwear">Clothing & Footwear (Children's clothes, Shoes, Uniforms)</option>
+                <option value="Educational Supplies">Educational Supplies (Books, Stationery, Tuition)</option>
+                <option value="Healthcare & Hygiene">Healthcare & Medical (First aid, Toiletries, Medicine)</option>
+                <option value="Bedding & Housing">Bedding & Shelter (Mattresses, Blankets, Repairs)</option>
+                <option value="Utilities & Operations">Utilities & Operating Funds (Electricity, Water, Rent)</option>
               </select>
             </FormField>
             <p style={{ margin: '0.4rem 0 0', fontSize: '0.78rem', color: '#64748b' }}>
@@ -281,7 +283,7 @@ function ProfileTab({ institution, setInst, addToast, user }) {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
             <button type="submit" disabled={saving} style={s.btnPrimary}>
-              {saving ? '⏳ Saving...' : '💾 Save Profile'}
+              {saving ? 'Saving...' : 'Save Profile'}
             </button>
           </div>
         </form>
@@ -344,9 +346,9 @@ function FundingTab({ username, institutionId, addToast }) {
 
       {/* KPI row */}
       <div style={s.kpiRow}>
-        <KPICard icon="💵" label="Total Cash Received" value={fmtGHS(totalCash)} color="#16a34a" bg="#dcfce7" />
-        <KPICard icon="📦" label="In-Kind Donations" value={`${totalInKind} entries`} color="#0284c7" bg="#e0f2fe" />
-        <KPICard icon="📋" label="Total Log Entries" value={entries.length} color="#7c3aed" bg="#ede9fe" />
+        <KPICard icon={BadgeDollarSign} label="Total Cash Received" value={fmtGHS(totalCash)} color="#16a34a" bg="#dcfce7" />
+        <KPICard icon={Package} label="In-Kind Donations" value={`${totalInKind} entries`} color="#0284c7" bg="#e0f2fe" />
+        <KPICard icon={FileText} label="Total Log Entries" value={entries.length} color="#7c3aed" bg="#ede9fe" />
       </div>
 
       {/* Add button */}
@@ -354,7 +356,7 @@ function FundingTab({ username, institutionId, addToast }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <SectionTitle icon="📑">Funding & Donation Log</SectionTitle>
           <button onClick={() => setShowForm(v => !v)} style={s.btnPrimary}>
-            {showForm ? '✕ Cancel' : '+ Add Entry'}
+            {showForm ? 'Cancel' : 'Add Entry'}
           </button>
         </div>
 
@@ -395,7 +397,7 @@ function FundingTab({ username, institutionId, addToast }) {
 
         {/* Table */}
         {entries.length === 0 ? (
-          <EmptyState icon="💰" text="No funding entries yet. Record your first donation above." />
+          <EmptyState icon={Wallet} text="No funding entries yet. Record your first donation above." />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={s.table}>
@@ -477,16 +479,16 @@ function DonorsTab({ username, addToast }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
       <div style={s.kpiRow}>
-        <KPICard icon="💰" label="Total Funds Tracked" value={fmtGHS(totalRaised)} color="#16a34a" bg="#dcfce7" />
-        <KPICard icon="🙋" label="Named Donors" value={namedCount} color="#0284c7" bg="#e0f2fe" />
-        <KPICard icon="🎭" label="Anonymous Donors" value={anonCount} color="#7c3aed" bg="#ede9fe" />
+        <KPICard icon={Wallet} label="Total Funds Tracked" value={fmtGHS(totalRaised)} color="#16a34a" bg="#dcfce7" />
+        <KPICard icon={Users} label="Named Donors" value={namedCount} color="#0284c7" bg="#e0f2fe" />
+        <KPICard icon={CircleHelp} label="Anonymous Donors" value={anonCount} color="#7c3aed" bg="#ede9fe" />
       </div>
 
       <div style={s.card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <SectionTitle icon="🤝">Donor Registry</SectionTitle>
+          <SectionTitle icon={Handshake}>Donor Registry</SectionTitle>
           <button onClick={() => setShowForm(v => !v)} style={s.btnPrimary}>
-            {showForm ? '✕ Cancel' : '+ Add Donor'}
+            {showForm ? 'Cancel' : 'Add Donor'}
           </button>
         </div>
 
@@ -541,7 +543,7 @@ function DonorsTab({ username, addToast }) {
         )}
 
         {donors.length === 0 ? (
-          <EmptyState icon="🤝" text="No donors logged yet. Add your first donor above." />
+          <EmptyState icon={Users} text="No donors logged yet. Add your first donor above." />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={s.table}>
@@ -674,16 +676,16 @@ function StaffTab({ username, addToast }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
       <div style={s.kpiRow}>
-        <KPICard icon="👷" label="Total Staff" value={staff.length} color="#0284c7" bg="#e0f2fe" />
-        <KPICard icon="✅" label="Total Milestones" value={staff.reduce((a, s) => a + (s.milestones?.length || 0), 0)} color="#16a34a" bg="#dcfce7" />
-        <KPICard icon="🏆" label="Completed Goals" value={staff.reduce((a, s) => a + (s.milestones?.filter(m => m.done).length || 0), 0)} color="#d97706" bg="#fef3c7" />
+        <KPICard icon={HardHat} label="Total Staff" value={staff.length} color="#0284c7" bg="#e0f2fe" />
+        <KPICard icon={CheckCircle} label="Total Milestones" value={staff.reduce((a, s) => a + (s.milestones?.length || 0), 0)} color="#16a34a" bg="#dcfce7" />
+        <KPICard icon={Target} label="Completed Goals" value={staff.reduce((a, s) => a + (s.milestones?.filter(m => m.done).length || 0), 0)} color="#d97706" bg="#fef3c7" />
       </div>
 
       <div style={s.card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <SectionTitle icon="👷">Staff Directory & Progress</SectionTitle>
+          <SectionTitle icon={HardHat}>Staff Directory & Progress</SectionTitle>
           <button onClick={() => setShowForm(v => !v)} style={s.btnPrimary}>
-            {showForm ? '✕ Cancel' : '+ Add Staff Member'}
+            {showForm ? 'Cancel' : 'Add Staff Member'}
           </button>
         </div>
 
@@ -724,7 +726,7 @@ function StaffTab({ username, addToast }) {
         )}
 
         {staff.length === 0 ? (
-          <EmptyState icon="👷" text="No staff added yet. Build your team above." />
+          <EmptyState icon={HardHat} text="No staff added yet. Build your team above." />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {staff.map(m => {
@@ -820,18 +822,18 @@ function IssuesTab({ institutionId, addToast }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={s.kpiRow}>
-        <KPICard icon="✉️" label="Total Messages" value={issues.length} color="#7c3aed" bg="#ede9fe" />
-        <KPICard icon="🔔" label="Unread" value={unread} color="#dc2626" bg="#fee2e2" />
+        <KPICard icon={Mail} label="Total Messages" value={issues.length} color="#7c3aed" bg="#ede9fe" />
+        <KPICard icon={ShieldCheck} label="Unread" value={unread} color="#dc2626" bg="#fee2e2" />
       </div>
 
       <div style={s.card}>
-        <SectionTitle icon="✉️">Messages & Issues from Donors / Visitors</SectionTitle>
+        <SectionTitle icon={Mail}>Messages & Issues from Donors / Visitors</SectionTitle>
         <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0.4rem 0 1.25rem' }}>
           These messages were submitted via the "Contact / Report Issue" form on the GoFundUs public platform.
         </p>
 
         {issues.length === 0 ? (
-          <EmptyState icon="✉️" text="No messages received yet. When donors contact you through GoFundUs, they'll appear here." />
+          <EmptyState icon={Mail} text="No messages received yet. When donors contact you through GoFundUs, they'll appear here." />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {issues.map(issue => (
@@ -882,10 +884,10 @@ function IssuesTab({ institutionId, addToast }) {
    TAB 6 — HELP & SUPPORT
    ══════════════════════════════════════════════════════════ */
 const HELP_CATS = [
-  { icon: '🚀', title: 'Getting Started', desc: 'Set up your institution profile, verify your registration, and understand the portal.' },
-  { icon: '📊', title: 'Managing Your Data', desc: 'Learn how to use the Funding Log, Donor Tracker, and Staff Progress tabs.' },
-  { icon: '🔒', title: 'Privacy & Security', desc: 'How your institution data is handled and kept secure on GoFundUs.' },
-  { icon: '📞', title: 'Contact GoFundUs', desc: 'Reach our admin team for account issues, disputes, or technical problems.' },
+  { icon: BookOpen, title: 'Getting Started', desc: 'Set up your institution profile, verify your registration, and understand the portal.' },
+  { icon: FileText, title: 'Managing Your Data', desc: 'Learn how to use the Funding Log, Donor Tracker, and Staff Progress tabs.' },
+  { icon: ShieldCheck, title: 'Privacy & Security', desc: 'How your institution data is handled and kept secure on GoFundUs.' },
+  { icon: Mail, title: 'Contact GoFundUs', desc: 'Reach our admin team for account issues, disputes, or technical problems.' },
 ];
 
 const HELP_FAQS = [
@@ -920,14 +922,14 @@ function HelpTab() {
         <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>Institution Help & Support Centre</h3>
         <p style={{ margin: '0 0 1.25rem', fontSize: '0.85rem', color: '#64748b' }}>Search documentation or submit a support inquiry directly to GoFundUs platform administrators.</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '9px', padding: '0.5rem 0.85rem', maxWidth: '560px' }}>
-          <span style={{ color: '#94a3b8' }}>🔍</span>
+          <span style={{ color: '#94a3b8' }}><Search size={17} /></span>
           <input
             style={{ border: 'none', outline: 'none', fontSize: '0.88rem', color: '#0f172a', background: 'transparent', width: '100%', fontFamily: 'inherit' }}
             placeholder="Ask a question..."
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
-          {query && <button onClick={() => setQuery('')} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8', fontSize: '0.8rem' }}>✕</button>}
+          {query && <button onClick={() => setQuery('')} aria-label="Clear search" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}><X size={15} /></button>}
         </div>
       </div>
 
@@ -935,7 +937,7 @@ function HelpTab() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         {HELP_CATS.map(c => (
           <div key={c.title} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <div style={{ width: '38px', height: '38px', borderRadius: '9px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', marginBottom: '0.75rem' }}>{c.icon}</div>
+            <div style={{ width: '38px', height: '38px', borderRadius: '9px', background: '#eff6ff', color: '#234d45', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}><c.icon size={19} /></div>
             <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a', marginBottom: '0.35rem' }}>{c.title}</div>
             <div style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.55 }}>{c.desc}</div>
           </div>
@@ -947,7 +949,7 @@ function HelpTab() {
         
         {/* Left Column: FAQs */}
         <div style={s.card}>
-          <SectionTitle icon="❓">Frequently Asked Questions</SectionTitle>
+          <SectionTitle icon={CircleHelp}>Frequently Asked Questions</SectionTitle>
           <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
             {filtered.length === 0 && <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No FAQs match your search.</p>}
             {filtered.map((f, i) => (
@@ -973,13 +975,13 @@ function HelpTab() {
 
         {/* Right Column: Contact Support */}
         <div style={s.card}>
-          <SectionTitle icon="📞">Contact System Admin</SectionTitle>
+          <SectionTitle icon={Mail}>Contact System Admin</SectionTitle>
           <p style={{ margin: '0.3rem 0 1.1rem', fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5 }}>
             Need help with verification, account recovery, or system features?
           </p>
           {sent ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: '10px', fontSize: '0.85rem', color: '#15803d', fontWeight: 600 }}>
-              ✅ Message sent! We'll respond shortly.
+              <CheckCircle size={18} aria-hidden="true" /> Message sent! We'll respond shortly.
             </div>
           ) : (
             <form onSubmit={e => {
@@ -1024,7 +1026,7 @@ function HelpTab() {
    ══════════════════════════════════════════════════════════ */
 const SectionTitle = ({ icon, children }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-    <span style={{ fontSize: '1.1rem' }}>{icon}</span>
+    <span style={{ display: 'inline-flex', color: '#234d45' }}>{React.createElement(icon, { size: 18, strokeWidth: 1.8 })}</span>
     <span style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>{children}</span>
   </div>
 );
@@ -1038,7 +1040,7 @@ const FormField = ({ label, children }) => (
 
 const KPICard = ({ icon, label, value, color, bg }) => (
   <div style={{ flex: 1, minWidth: '160px', background: bg, borderRadius: '14px', padding: '1.1rem 1.25rem' }}>
-    <div style={{ fontSize: '1.4rem', marginBottom: '0.35rem' }}>{icon}</div>
+    <div style={{ color, marginBottom: '0.35rem' }}>{React.createElement(icon, { size: 22, strokeWidth: 1.8 })}</div>
     <div style={{ fontSize: '1.5rem', fontWeight: 800, color, letterSpacing: '-0.02em' }}>{value}</div>
     <div style={{ fontSize: '0.75rem', color, opacity: 0.8, marginTop: '0.15rem', fontWeight: 500 }}>{label}</div>
   </div>
@@ -1048,12 +1050,12 @@ const StatusBadge = ({ children_count, funding_gap }) => (
   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
     {children_count != null && (
       <span style={{ padding: '4px 12px', borderRadius: '99px', background: '#e0f2fe', color: '#0284c7', fontSize: '0.78rem', fontWeight: 700 }}>
-        👶 {children_count} children
+        {children_count} children
       </span>
     )}
     {funding_gap != null && (
       <span style={{ padding: '4px 12px', borderRadius: '99px', background: '#fef3c7', color: '#d97706', fontSize: '0.78rem', fontWeight: 700 }}>
-        💳 Gap: {fmtGHS(funding_gap)}
+        Gap: {fmtGHS(funding_gap)}
       </span>
     )}
   </div>
@@ -1081,7 +1083,7 @@ const TypeBadge = ({ type }) => {
 
 const EmptyState = ({ icon, text }) => (
   <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
-    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>{icon}</div>
+    <div style={{ marginBottom: '0.75rem' }}>{React.createElement(icon, { size: 34, strokeWidth: 1.5 })}</div>
     <p style={{ margin: 0, fontSize: '0.9rem' }}>{text}</p>
   </div>
 );
