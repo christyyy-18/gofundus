@@ -528,7 +528,7 @@ const styles = {
     borderRadius: '26px',
     padding: '20px 24px 20px',
     boxShadow: '0 18px 30px rgba(90,70,50,0.08)',
-    marginTop: '0px',
+    marginTop: '28px',
   },
   cardBadge: {
     display: 'inline-flex',
