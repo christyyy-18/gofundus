@@ -18,12 +18,4 @@ services:
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
       - key: DATABASE_URL
-        fromDatabase:
-          name: gofundus-db
-          property: connectionString
-
-databases:
-  - name: gofundus-db
-    plan: free
-    databaseName: gofundus
-    user: gofundus
+        sync: false

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePaystackPayment } from 'react-paystack';
+import PaystackPop from '@paystack/inline-js';
 import { useToast } from './ToastProvider';
 import { sendInstitutionContactEmail } from '../services/api';
 import { CheckCircle, CreditCard, Mail, MapPin, X } from 'lucide-react';
@@ -25,6 +25,8 @@ export default function SupportModal({ institution, onClose }) {
   const [tab, setTab]               = useState('donate'); // 'donate' | 'contact'
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone]             = useState(false);
+  const [paymentInstance, setPaymentInstance] = useState(null);
+  const [paymentOpen, setPaymentOpen] = useState(false);
 
   const amountKobo = Math.round(Number(amount || 0) * 100); // Paystack uses pesewas (kobo equiv for GHS)
 
@@ -62,17 +64,29 @@ export default function SupportModal({ institution, onClose }) {
   };
 
   const onPaystackClose = () => {
+    setPaymentInstance(null);
+    setPaymentOpen(false);
     addToast('Payment window closed. No charge was made.', 'error');
   };
-
-  const initPaystack = usePaystackPayment(config);
 
   const handlePay = (e) => {
     e.preventDefault();
     if (!amount || Number(amount) < 1) { addToast('Enter a valid donation amount.', 'error'); return; }
     if (!anonymous && !donorName.trim()) { addToast('Enter your name or choose anonymous.', 'error'); return; }
     if (!donorEmail.trim() && !anonymous) { addToast('Enter your email for the receipt.', 'error'); return; }
-    initPaystack({ onSuccess, onClose: onPaystackClose });
+    const paystack = new PaystackPop();
+    setPaymentInstance(paystack);
+    setPaymentOpen(true);
+    paystack.newTransaction({
+      ...config,
+      key: PAYSTACK_PUBLIC_KEY,
+      onSuccess,
+      onCancel: onPaystackClose,
+    });
+  };
+
+  const closePayment = () => {
+    paymentInstance?.cancelTransaction();
   };
 
   const handleContact = async (e) => {
@@ -107,6 +121,13 @@ export default function SupportModal({ institution, onClose }) {
         padding: '1.5rem',
       }}
     >
+      {paymentOpen && (
+        <div style={s.paymentExit}>
+          <button type="button" onClick={closePayment} aria-label="Close payment window" style={s.paymentExitButton}>
+            <X size={16} /> Close payment
+          </button>
+        </div>
+      )}
       <div
         onClick={e => e.stopPropagation()}
         style={{
@@ -326,5 +347,23 @@ const s = {
     padding: '0.8rem', borderRadius: '10px', border: 'none',
     background: '#0284c7', color: '#fff', fontWeight: 700, fontSize: '0.92rem',
     cursor: 'pointer', fontFamily: 'inherit', width: '100%',
+  },
+  paymentExit: {
+    position: 'fixed',
+    top: '1rem',
+    right: '1rem',
+    zIndex: 2147483647,
+  },
+  paymentExitButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    padding: '0.65rem 0.9rem',
+    borderRadius: '8px',
+    background: '#234d45',
+    color: '#fff',
+    fontWeight: 700,
+    fontSize: '0.8rem',
+    boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
   },
 };

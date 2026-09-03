@@ -112,13 +112,13 @@ const Login = () => {
                 <div style={styles.programHeader}>Verified Needs</div>
                 <div style={styles.programGrid}>
                   {[
-                    ['Education', '/images/youth_home.png'],
-                    ['Healthcare', '/images/cherubs_home.png'],
-                    ['Nutrition', '/images/king_jesus_home.png'],
-                    ['Shelter', '/images/mampong_home.png'],
-                    ['Clothing', '/images/youth_home.png'],
-                    ['Clean Water', '/images/hong_kong_home.svg'],
-                    ['Vocational Training', '/images/youth_home.png'],
+                    ['Education', 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=900&q=80'],
+                    ['Healthcare', 'https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=80'],
+                    ['Nutrition', 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80'],
+                    ['Shelter', 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=80'],
+                    ['Clothing', 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=900&q=80'],
+                    ['Clean Water', 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=900&q=80'],
+                    ['Vocational Training', 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80'],
                     ['Mental Health', '/images/cherubs_home.png'],
                   ].map(([name, src]) => (
                     <div key={name} style={styles.programItem}>

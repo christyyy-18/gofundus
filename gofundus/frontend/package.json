@@ -8,6 +8,7 @@
     "preview": "node node_modules/vite/bin/vite.js preview"
   },
   "dependencies": {
+    "@paystack/inline-js": "^2.24.0",
     "firebase": "^12.17.1",
     "lucide-react": "^1.39.0",
     "react": "^18.2.0",
