@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
 import { apiFetch } from '../services/api';
-import { uploadProfilePhoto } from '../services/firebase';
+import { uploadProfilePhoto } from '../services/cloudinary';
 
 const CAUSES = [
   'Education', 'Healthcare', 'Nutrition', 'Shelter', 'Infant Care',
@@ -120,7 +120,7 @@ const DonorProfile = () => {
           localStorage.setItem(`avatar_${username}`, avatarPreview);
         }
       } catch (uploadErr) {
-        console.warn('Firebase avatar upload fallback:', uploadErr);
+        console.warn('Avatar upload fallback:', uploadErr);
         if (avatarPreview) {
           localStorage.setItem(`avatar_${username}`, avatarPreview);
         }

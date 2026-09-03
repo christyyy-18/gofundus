@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
 import { apiFetch } from '../services/api';
-import { uploadProfilePhoto } from '../services/firebase';
+import { uploadProfilePhoto } from '../services/cloudinary';
 
 const CAUSES = [
   'Education', 'Healthcare', 'Nutrition', 'Shelter', 'Infant Care',
@@ -55,7 +55,7 @@ const Register = () => {
         try {
           remotePhotoUrl = await uploadProfilePhoto(photoFile, username);
         } catch (uploadError) {
-          console.warn('Firebase photo upload failed; using local preview:', uploadError);
+          console.warn('Photo upload failed; using local preview:', uploadError);
         }
         localStorage.setItem(`avatar_${username}`, remotePhotoUrl || photo);
       }

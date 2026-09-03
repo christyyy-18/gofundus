@@ -1,6 +1,5 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInAnonymously, signInWithPopup } from 'firebase/auth';
-import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -16,17 +15,6 @@ const app = firebaseConfigured
   ? (getApps().length ? getApp() : initializeApp(firebaseConfig))
   : null;
 const auth = app ? getAuth(app) : null;
-const storage = app ? getStorage(app) : null;
-
-export async function uploadProfilePhoto(file, username) {
-  if (!firebaseConfigured || !auth || !storage) return null;
-
-  const session = auth.currentUser || (await signInAnonymously(auth)).user;
-  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const photoRef = ref(storage, `avatars/${session.uid}/${username}.${extension}`);
-  await uploadBytes(photoRef, file, { contentType: file.type });
-  return getDownloadURL(photoRef);
-}
 
 export async function signInWithGoogle() {
   if (!firebaseConfigured || !auth) {
