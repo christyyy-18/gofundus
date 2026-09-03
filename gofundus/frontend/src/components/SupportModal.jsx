@@ -4,8 +4,8 @@ import { useToast } from './ToastProvider';
 import { sendInstitutionContactEmail } from '../services/api';
 import { CheckCircle, CreditCard, Mail, MapPin, X } from 'lucide-react';
 
-/* ─── Public key for live Paystack payments ─── */
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_ed1e2e022f83339de939f87022bdc338bbe4a801';
+/* ─── Public key for Paystack payments ─── */
+const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
 /* ─── Amount presets (GHS) ─── */
 const PRESETS = [50, 100, 250, 500, 1000];
@@ -74,6 +74,7 @@ export default function SupportModal({ institution, onClose }) {
     if (!amount || Number(amount) < 1) { addToast('Enter a valid donation amount.', 'error'); return; }
     if (!anonymous && !donorName.trim()) { addToast('Enter your name or choose anonymous.', 'error'); return; }
     if (!donorEmail.trim() && !anonymous) { addToast('Enter your email for the receipt.', 'error'); return; }
+    if (!PAYSTACK_PUBLIC_KEY) { addToast('Payments are not configured yet. Please contact the site admin.', 'error'); return; }
     const paystack = new PaystackPop();
     setPaymentInstance(paystack);
     setPaymentOpen(true);
