@@ -15,11 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path, include
-from .views import serve_frontend
+
+
+def api_root(request):
+    return JsonResponse({'status': 'ok', 'service': 'gofundus-api'})
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('', serve_frontend),
+    path('', api_root),
 ]
