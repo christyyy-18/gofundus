@@ -27,20 +27,30 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
 
 
 export async function fetchInstitutions(district?: string, search?: string): Promise<Institution[]> {
-  try {
-    let url = `${API_BASE_URL}/institutions/`;
-    const params = new URLSearchParams();
-    if (district && district !== 'All Districts') params.append('district', district);
-    if (search) params.append('search', search);
-    if (params.toString()) url += `?${params.toString()}`;
+  let path = '/institutions/';
+  const params = new URLSearchParams();
+  if (district && district !== 'All Districts') params.append('district', district);
+  if (search) params.append('search', search);
+  if (params.toString()) path += `?${params.toString()}`;
 
-    const res = await apiFetch(url.replace(API_BASE_URL, ''));
-    if (!res.ok) throw new Error('Failed to fetch institutions');
-    return await res.json();
-  } catch (error) {
-    console.warn('API error, using local fallback:', error);
-    return FALLBACK_INSTITUTIONS;
+  // Render's free-tier backend spins down after inactivity and can take
+  // 30-60s to wake up, so the first request after idle time often fails —
+  // retry once after a short delay before giving up and using fallback data.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await apiFetch(path);
+      if (!res.ok) throw new Error('Failed to fetch institutions');
+      return await res.json();
+    } catch (error) {
+      if (attempt === 0) {
+        await new Promise(resolve => setTimeout(resolve, 4000));
+        continue;
+      }
+      console.warn('API error, using local fallback:', error);
+      return FALLBACK_INSTITUTIONS;
+    }
   }
+  return FALLBACK_INSTITUTIONS;
 }
 
 export async function matchDonorStatement(text: string, lat = 6.6885, lng = -1.6244): Promise<MatchResponse> {

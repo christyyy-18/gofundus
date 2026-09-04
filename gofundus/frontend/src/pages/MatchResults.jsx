@@ -33,15 +33,9 @@ const MatchResults = () => {
     return { label: `Stale (${days}d old)`, color: '#dc2626' };
   };
 
-  const getHomeImage = (inst) => {
-    if (inst.image_url) return inst.image_url;
-    if (Number(inst.gps_lat) >= 20) return '/images/hong_kong_home.svg';
-    if (inst.name?.includes('Mampong')) return '/images/mampong_home.png';
-    if (inst.name?.includes('King Jesus')) return '/images/king_jesus_home.png';
-    if (inst.name?.includes('Cherubs')) return '/images/cherubs_home.png';
-    if (inst.name?.includes('Suame') || inst.name?.includes('Nations')) return '/images/youth_home.png';
-    return '/children.png';
-  };
+  // Use the institution's own uploaded photo when it has one; otherwise show
+  // the GoFundUs logo rather than an unrelated stock/AI-generated photo.
+  const getHomeImage = (inst) => inst.image_url || '/logo.png';
 
   const handleSupport = (inst) => {
     setSelectedMatch(null);
@@ -137,8 +131,21 @@ const MatchResults = () => {
                 >
                   <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                     {/* Thumbnail photo */}
-                    <div style={{ width: '90px', height: '90px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, background: '#f1f5f9' }}>
-                      <img src={img} alt={inst.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = '/children.png'; }} />
+                    <div style={{
+                      width: '90px', height: '90px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0,
+                      background: inst.image_url ? '#f1f5f9' : '#f7f1ea',
+                      display: inst.image_url ? 'block' : 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <img
+                        src={img}
+                        alt={inst.name}
+                        style={inst.image_url
+                          ? { width: '100%', height: '100%', objectFit: 'cover' }
+                          : { width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px' }
+                        }
+                        onError={(e) => { e.target.src = '/logo.png'; }}
+                      />
                     </div>
 
                     <div style={{ flex: 1, minWidth: '220px' }}>
@@ -247,12 +254,19 @@ const MatchResults = () => {
             </button>
 
             {/* Photo Header */}
-            <div style={{ position: 'relative', height: '240px', width: '100%', background: '#1e2d3d' }}>
+            <div style={{
+              position: 'relative', height: '240px', width: '100%', background: '#1e2d3d',
+              display: selectedMatch.institution.image_url ? 'block' : 'flex',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
               <img
                 src={getHomeImage(selectedMatch.institution)}
                 alt={selectedMatch.institution.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={(e) => { e.target.src = '/children.png'; }}
+                style={selectedMatch.institution.image_url
+                  ? { width: '100%', height: '100%', objectFit: 'cover' }
+                  : { width: '96px', height: '96px', objectFit: 'contain', borderRadius: '16px' }
+                }
+                onError={(e) => { e.target.src = '/logo.png'; }}
               />
               <div style={{
                 position: 'absolute', inset: 0,

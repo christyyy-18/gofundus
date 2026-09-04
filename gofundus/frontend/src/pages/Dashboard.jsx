@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { fetchInstitutions, FALLBACK_INSTITUTIONS } from '../services/api';
+import { fetchInstitutions } from '../services/api';
 import { useToast } from '../components/ToastProvider';
 import SupportModal from '../components/SupportModal';
 
 const Dashboard = () => {
-  const [institutions, setInstitutions] = useState(FALLBACK_INSTITUTIONS);
+  const [institutions, setInstitutions] = useState([]);
   const [district, setDistrict] = useState('All Districts');
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedInst, setSelectedInst] = useState(null);
   const [supportInst, setSupportInst] = useState(null);
   const { addToast } = useToast();
@@ -28,17 +28,11 @@ const Dashboard = () => {
     return '#22c55e';
   };
 
-  const getHomeImage = (inst) => {
-    if (inst.image_url) return inst.image_url;
-    if (Number(inst.gps_lat) >= 20) return '/images/hong_kong_home.svg';
-    if (inst.name?.includes('Mampong')) return '/images/mampong_home.png';
-    if (inst.name?.includes('King Jesus')) return '/images/king_jesus_home.png';
-    if (inst.name?.includes('Cherubs')) return '/images/cherubs_home.png';
-    if (inst.name?.includes('Suame') || inst.name?.includes('Nations')) return '/images/youth_home.png';
-    return '/children.png';
-  };
+  // Use the institution's own uploaded photo when it has one; otherwise show
+  // the GoFundUs logo rather than an unrelated stock/AI-generated photo.
+  const getHomeImage = (inst) => inst.image_url || '/logo.png';
 
-  const districts = ['All Districts', ...Array.from(new Set(FALLBACK_INSTITUTIONS.map(i => i.district)))];
+  const districts = ['All Districts', ...Array.from(new Set(institutions.map(i => i.district)))];
 
   const handleSupport = (inst) => {
     setSelectedInst(null);
@@ -46,7 +40,23 @@ const Dashboard = () => {
   };
 
   return (
-    <section style={{ maxWidth: '960px', margin: '0 auto', padding: '2.5rem 1.5rem', fontFamily: "'Inter', sans-serif" }}>
+    <section style={{ maxWidth: '1400px', margin: '0 auto', padding: '2.5rem 1.5rem', fontFamily: "'Inter', sans-serif" }}>
+      <style>{`
+        .orphanage-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.25rem;
+        }
+        @media (min-width: 640px) {
+          .orphanage-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 1100px) {
+          .orphanage-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 480px) {
+          .orphanage-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.4rem', letterSpacing: '-0.02em' }}>
           Registered Orphanage Homes
@@ -101,7 +111,7 @@ const Dashboard = () => {
       )}
 
       {/* Institution Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
+      <div className="orphanage-grid">
         {institutions.map((inst) => {
           const img = getHomeImage(inst);
           const urgencyColor = getUrgencyColor(inst.urgency_days_since_donation);
@@ -133,12 +143,20 @@ const Dashboard = () => {
               }}
             >
               {/* Home Photo */}
-              <div style={{ position: 'relative', height: '160px', width: '100%', overflow: 'hidden', background: '#e2e8f0' }}>
+              <div style={{
+                position: 'relative', height: '160px', width: '100%', overflow: 'hidden',
+                background: inst.image_url ? '#e2e8f0' : '#f7f1ea',
+                display: inst.image_url ? 'block' : 'flex',
+                alignItems: 'center', justifyContent: 'center',
+              }}>
                 <img
                   src={img}
                   alt={inst.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => { e.target.src = '/children.png'; }}
+                  style={inst.image_url
+                    ? { width: '100%', height: '100%', objectFit: 'cover' }
+                    : { width: '64px', height: '64px', objectFit: 'contain', borderRadius: '12px' }
+                  }
+                  onError={(e) => { e.target.src = '/logo.png'; }}
                 />
                 <div style={{
                   position: 'absolute', top: '10px', right: '10px',
@@ -234,12 +252,19 @@ const Dashboard = () => {
             </button>
 
             {/* Modal Hero Image */}
-            <div style={{ position: 'relative', height: '240px', width: '100%', background: '#1e2d3d' }}>
+            <div style={{
+              position: 'relative', height: '240px', width: '100%', background: '#1e2d3d',
+              display: selectedInst.image_url ? 'block' : 'flex',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
               <img
                 src={getHomeImage(selectedInst)}
                 alt={selectedInst.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={(e) => { e.target.src = '/children.png'; }}
+                style={selectedInst.image_url
+                  ? { width: '100%', height: '100%', objectFit: 'cover' }
+                  : { width: '96px', height: '96px', objectFit: 'contain', borderRadius: '16px' }
+                }
+                onError={(e) => { e.target.src = '/logo.png'; }}
               />
               <div style={{
                 position: 'absolute', inset: 0,
