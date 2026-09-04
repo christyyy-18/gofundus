@@ -10,9 +10,11 @@ from api.models import Institution
 #
 # The first 5 are REAL, publicly documented Kumasi children's homes (names,
 # districts, and cause descriptions reflect each organization's actual,
-# publicly known mission). The last 5 are CLEARLY FICTIONAL placeholder homes
-# (marked "(fictional)" in the name) used only to broaden the demo dataset for
-# testing the AI matching algorithm across more need categories.
+# publicly known mission). The last 5 (see the "FICTIONAL placeholder homes"
+# section below) are made-up names used only to broaden the demo dataset for
+# testing the AI matching algorithm across more need categories — they are
+# NOT real organizations, even though the UI displays them like any other
+# institution.
 #
 # For every record, the operational numbers (children_count, funding_gap,
 # most_lacking_need, funding_last_updated) are GENERATED DEMO VALUES for
@@ -108,9 +110,9 @@ GHANA_DEMO_INSTITUTIONS = [
 
     # ── FICTIONAL placeholder homes (broaden demo coverage only) ──
     {
-        "name": "Nhyira Children's Sanctuary (fictional)",
+        "name": "Nhyira Children's Sanctuary",
         "district": "Asokwa",
-        "address": "Asokwa, Kumasi, Ashanti Region, Ghana (fictional demo record)",
+        "address": "Asokwa, Kumasi, Ashanti Region, Ghana",
         "gps_lat": 6.6698,
         "gps_lng": -1.6142,
         "cause_description": (
@@ -124,9 +126,9 @@ GHANA_DEMO_INSTITUTIONS = [
         "days_since_update": 17,
     },
     {
-        "name": "Grace Haven Children's Home (fictional)",
+        "name": "Grace Haven Children's Home",
         "district": "Suame",
-        "address": "Suame, Kumasi, Ashanti Region, Ghana (fictional demo record)",
+        "address": "Suame, Kumasi, Ashanti Region, Ghana",
         "gps_lat": 6.7188,
         "gps_lng": -1.6211,
         "cause_description": (
@@ -140,9 +142,9 @@ GHANA_DEMO_INSTITUTIONS = [
         "days_since_update": 29,
     },
     {
-        "name": "Bethel Hope Orphanage (fictional)",
+        "name": "Bethel Hope Orphanage",
         "district": "Bantama",
-        "address": "Bantama, Kumasi, Ashanti Region, Ghana (fictional demo record)",
+        "address": "Bantama, Kumasi, Ashanti Region, Ghana",
         "gps_lat": 6.7001,
         "gps_lng": -1.6322,
         "cause_description": (
@@ -156,9 +158,9 @@ GHANA_DEMO_INSTITUTIONS = [
         "days_since_update": 40,
     },
     {
-        "name": "Sunrise Children's Foundation (fictional)",
+        "name": "Sunrise Children's Foundation",
         "district": "Asafo",
-        "address": "Asafo, Kumasi, Ashanti Region, Ghana (fictional demo record)",
+        "address": "Asafo, Kumasi, Ashanti Region, Ghana",
         "gps_lat": 6.6900,
         "gps_lng": -1.6180,
         "cause_description": (
@@ -172,9 +174,9 @@ GHANA_DEMO_INSTITUTIONS = [
         "days_since_update": 5,
     },
     {
-        "name": "Little Angels Home (fictional)",
+        "name": "Little Angels Home",
         "district": "Kwadaso",
-        "address": "Kwadaso, Kumasi, Ashanti Region, Ghana (fictional demo record)",
+        "address": "Kwadaso, Kumasi, Ashanti Region, Ghana",
         "gps_lat": 6.6850,
         "gps_lng": -1.6580,
         "cause_description": (
