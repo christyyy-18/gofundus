@@ -63,6 +63,7 @@ const NavBar = () => {
               /* ── System admin: admin control panel nav ── */
               <>
                 <NavLink to="/admin" className="navbar__link">Admin</NavLink>
+                <NavLink to="/admin/support" className="navbar__link">Help & Support</NavLink>
                 <NavLink to="/profile" className="navbar__link navbar__profile-link">
                   {storedAvatar
                     ? <img src={storedAvatar} alt="avatar" className="navbar__avatar" style={{ objectFit: 'cover', padding: 0 }} />

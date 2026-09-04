@@ -9,6 +9,7 @@ import MatchResults from './pages/MatchResults';
 import DonorProfile from './pages/DonorProfile';
 import OrphanagePortal from './pages/OrphanagePortal';
 import Support from './pages/Support';
+import AdminSupport from './pages/AdminSupport';
 import NavBar from './components/NavBar';
 import ToastProvider from './components/ToastProvider';
 
@@ -28,6 +29,7 @@ const App = () => {
           <Route path="/profile" element={<DonorProfile />} />
           <Route path="/orphanage-portal" element={<OrphanagePortal />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/admin/support" element={<AdminSupport />} />
         </Routes>
       </ToastProvider>
     </Router>
