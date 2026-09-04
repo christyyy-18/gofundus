@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { useToast } from '../components/ToastProvider';
 import { apiFetch } from '../services/api';
 import { uploadProfilePhoto } from '../services/cloudinary';
@@ -19,6 +20,7 @@ const Register = () => {
   const [photo, setPhoto]           = useState(null);   // base64 preview
   const [photoFile, setPhotoFile]   = useState(null);
   const [loading, setLoading]       = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const fileRef                     = useRef();
   const navigate                    = useNavigate();
   const { addToast }                = useToast();
@@ -148,15 +150,26 @@ const Register = () => {
             {/* Password + Role row */}
             <div style={s.row}>
               <Field label="Password" id="reg-pass">
-                <input
-                  id="reg-pass"
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Min 8 characters"
-                  required
-                  style={s.input}
-                />
+                <div style={s.passwordWrap}>
+                  <input
+                    id="reg-pass"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Min 8 characters"
+                    required
+                    style={{ ...s.input, paddingRight: '2.5rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    style={s.passwordToggle}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
               </Field>
               <Field label="I am a…" id="reg-role">
                 <select
@@ -335,6 +348,20 @@ const s = {
   /* Form */
   form: { display: 'flex', flexDirection: 'column', gap: '1.75rem' },
   row: { display: 'flex', gap: '1.5rem', flexWrap: 'wrap' },
+  passwordWrap: { position: 'relative', width: '100%' },
+  passwordToggle: {
+    position: 'absolute',
+    right: '0.7rem',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    display: 'flex',
+    alignItems: 'center',
+    color: '#8d7f72',
+    cursor: 'pointer',
+  },
   input: {
     width: '100%',
     padding: '0.85rem 1rem',
