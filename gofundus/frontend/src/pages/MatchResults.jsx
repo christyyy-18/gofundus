@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useToast } from '../components/ToastProvider';
 import { matchDonorStatement } from '../services/api';
 import SupportModal from '../components/SupportModal';
+import { getPlaceholderTileColor } from '../utils/placeholderTile';
 
 const MatchResults = () => {
   const [statement, setStatement] = useState('');
@@ -26,11 +27,10 @@ const MatchResults = () => {
   };
 
   const getFreshnessLabel = (days) => {
-    if (days === null || days === undefined) return { label: 'Unverified Data', color: '#64748b' };
-    if (days <= 7) return { label: `Updated ${days}d ago`, color: '#16a34a' };
-    if (days <= 30) return { label: `Updated ${days}d ago`, color: '#0284c7' };
-    if (days <= 90) return { label: `Info ${days}d old`, color: '#d97706' };
-    return { label: `Stale (${days}d old)`, color: '#dc2626' };
+    if (days === null || days === undefined) return { label: 'Unverified data', color: 'var(--color-text-muted)' };
+    if (days <= 30) return { label: `Updated ${days}d ago`, color: 'var(--color-text-muted)' };
+    if (days <= 90) return { label: `Info ${days}d old`, color: '#b45309' };
+    return { label: `Stale (${days}d old)`, color: '#b45309' };
   };
 
   // Use the institution's own uploaded photo when it has one; otherwise show
@@ -43,12 +43,12 @@ const MatchResults = () => {
   };
 
   return (
-    <section style={{ maxWidth: '840px', margin: '0 auto', padding: '2.5rem 1.5rem', fontFamily: "'Inter', sans-serif" }}>
-      <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
-        Find Your Impact Match
+    <section style={{ maxWidth: '840px', margin: '0 auto', padding: '2.5rem 1.5rem', fontFamily: 'var(--font-body)' }}>
+      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '0.5rem' }}>
+        Find your impact match
       </h1>
       <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.92rem' }}>
-        Describe what causes you care about and our AI engine will match you with the relevant Kumasi orphanages. Tap any card to view full profile & photo.
+        Describe what causes you care about and we'll match you with Kumasi orphanages that need it most.
       </p>
 
       <form onSubmit={handleMatch} style={{ display: 'flex', gap: '0.75rem', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
@@ -61,7 +61,7 @@ const MatchResults = () => {
             flex: 1,
             minWidth: '240px',
             padding: '0.85rem 1.1rem',
-            borderRadius: '12px',
+            borderRadius: 'var(--border-radius)',
             border: '1.5px solid var(--color-border)',
             background: 'var(--color-surface)',
             color: 'var(--color-text)',
@@ -78,19 +78,18 @@ const MatchResults = () => {
           style={{
             alignSelf: 'flex-start',
             padding: '0.85rem 1.6rem',
-            background: 'linear-gradient(135deg, #2D9CDB 0%, #1d4ed8 100%)',
+            background: 'var(--color-accent)',
             color: '#fff',
             border: 'none',
-            borderRadius: '12px',
+            borderRadius: 'var(--border-radius)',
             fontWeight: 700,
             fontSize: '0.9rem',
             cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.6 : 1,
             transition: 'opacity 0.2s',
-            boxShadow: '0 4px 14px rgba(45,156,219,0.3)',
           }}
         >
-          {loading ? 'Matching…' : '✨ Find Matches'}
+          {loading ? 'Matching…' : 'Find matches'}
         </button>
       </form>
 
@@ -112,62 +111,47 @@ const MatchResults = () => {
                   style={{
                     background: 'var(--color-surface)',
                     border: '1.5px solid var(--color-border)',
-                    borderRadius: '18px',
+                    borderRadius: 'var(--border-radius)',
                     padding: '1.25rem 1.5rem',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                    boxShadow: '0 1px 3px rgba(36,31,29,0.06)',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.borderColor = '#2D9CDB';
-                    e.currentTarget.style.boxShadow = '0 10px 24px rgba(45,156,219,0.12)';
+                    e.currentTarget.style.borderColor = 'var(--color-primary)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(36,31,29,0.08)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.borderColor = 'var(--color-border)';
-                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.03)';
+                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(36,31,29,0.06)';
                   }}
                 >
                   <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                     {/* Thumbnail photo */}
                     <div style={{
-                      width: '90px', height: '90px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0,
-                      background: inst.image_url ? '#f1f5f9' : '#f7f1ea',
+                      width: '90px', height: '90px', borderRadius: 'var(--border-radius)', overflow: 'hidden', flexShrink: 0,
+                      background: inst.image_url ? 'var(--color-border)' : getPlaceholderTileColor(inst.id || inst.name),
                       display: inst.image_url ? 'block' : 'flex',
                       alignItems: 'center', justifyContent: 'center',
+                      border: '1px solid var(--color-border)',
                     }}>
                       <img
                         src={img}
                         alt={inst.name}
                         style={inst.image_url
                           ? { width: '100%', height: '100%', objectFit: 'cover' }
-                          : { width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px' }
+                          : { width: '44px', height: '44px', objectFit: 'contain' }
                         }
                         onError={(e) => { e.target.src = '/logo.png'; }}
                       />
                     </div>
 
                     <div style={{ flex: 1, minWidth: '220px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-                        <span style={{
-                          fontSize: '0.7rem',
-                          fontWeight: 800,
-                          background: '#2D9CDB',
-                          color: '#fff',
-                          borderRadius: '6px',
-                          padding: '2px 8px',
-                        }}>
-                          #{match.rank} Match
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem' }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                          Rank #{match.rank}
                         </span>
-                        <span style={{
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          color: freshness.color,
-                          border: `1px solid ${freshness.color}`,
-                          borderRadius: '6px',
-                          padding: '2px 8px',
-                        }}>
+                        <span style={{ fontSize: '0.72rem', color: freshness.color }}>
                           {freshness.label}
                         </span>
                       </div>
@@ -177,33 +161,34 @@ const MatchResults = () => {
                       <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem', fontWeight: 500 }}>
                         {inst.district} · {inst.children_count} children · GHS {Number(inst.funding_gap).toLocaleString()} gap
                       </p>
-                      <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.5, margin: 0 }}>
                         {inst.cause_description.slice(0, 140)}…
                       </p>
                     </div>
 
                     {/* Match Score */}
                     <div style={{ textAlign: 'right', flexShrink: 0, alignSelf: 'center' }}>
-                      <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#2D9CDB', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                      <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
                         {Math.round(match.final_score * 100)}%
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, marginTop: '2px' }}>AI Match Score</div>
-                      <div style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 700, marginTop: '8px' }}>Tap for Profile ➔</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, marginTop: '2px' }}>match score</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--color-accent)', fontWeight: 700, marginTop: '8px' }}>View profile</div>
                     </div>
                   </div>
 
                   {/* Match reasons */}
-                  <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-border)', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                     {match.match_reasons.map((reason, i) => (
                       <span key={i} style={{
                         fontSize: '0.72rem',
                         fontWeight: 600,
-                        color: '#334155',
-                        background: '#f1f5f9',
+                        color: 'var(--color-text-muted)',
+                        background: 'var(--color-bg)',
                         borderRadius: '6px',
                         padding: '3px 9px',
+                        border: '1px solid var(--color-border)',
                       }}>
-                        ✓ {reason}
+                        {reason}
                       </span>
                     ))}
                   </div>
@@ -228,8 +213,8 @@ const MatchResults = () => {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: '#ffffff',
-              borderRadius: '24px',
+              background: 'var(--color-surface)',
+              borderRadius: 'var(--border-radius)',
               maxWidth: '620px',
               width: '100%',
               maxHeight: '90vh',
@@ -273,15 +258,10 @@ const MatchResults = () => {
                 background: 'linear-gradient(to top, rgba(15,23,42,0.85) 0%, transparent 60%)',
               }} />
               <div style={{ position: 'absolute', bottom: '16px', left: '20px', right: '20px', color: '#fff' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '6px', flexWrap: 'wrap' }}>
-                  <span style={{ background: '#2D9CDB', padding: '3px 10px', borderRadius: '99px', fontSize: '0.72rem', fontWeight: 800 }}>
-                    #{selectedMatch.rank} Match ({Math.round(selectedMatch.final_score * 100)}% Score)
-                  </span>
-                  <span style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)', padding: '3px 10px', borderRadius: '99px', fontSize: '0.72rem', fontWeight: 700 }}>
-                    {selectedMatch.institution.district}
-                  </span>
+                <div style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: '4px' }}>
+                  Rank #{selectedMatch.rank} · {Math.round(selectedMatch.final_score * 100)}% match · {selectedMatch.institution.district}
                 </div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
                   {selectedMatch.institution.name}
                 </h2>
               </div>
@@ -289,33 +269,32 @@ const MatchResults = () => {
 
             {/* Modal Body */}
             <div style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              
+
               {/* Quick stats grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
-                <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '14px', padding: '0.9rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0369a1' }}>{selectedMatch.institution.children_count}</div>
-                  <div style={{ fontSize: '0.72rem', color: '#0284c7', textTransform: 'uppercase', fontWeight: 700, marginTop: '2px' }}>Children in Care</div>
+                <div style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius)', padding: '0.9rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)' }}>{selectedMatch.institution.children_count}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>Children in care</div>
                 </div>
-                <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '14px', padding: '0.9rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#b45309' }}>GHS {Number(selectedMatch.institution.funding_gap).toLocaleString()}</div>
-                  <div style={{ fontSize: '0.72rem', color: '#d97706', textTransform: 'uppercase', fontWeight: 700, marginTop: '2px' }}>Funding Gap</div>
+                <div style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius)', padding: '0.9rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>GHS {Number(selectedMatch.institution.funding_gap).toLocaleString()}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>Funding gap</div>
                 </div>
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px', padding: '0.9rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#15803d' }}>{selectedMatch.distance_km || 2.4} km</div>
-                  <div style={{ fontSize: '0.72rem', color: '#16a34a', textTransform: 'uppercase', fontWeight: 700, marginTop: '2px' }}>Distance</div>
+                <div style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius)', padding: '0.9rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>{selectedMatch.distance_km || 2.4} km</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>Distance</div>
                 </div>
               </div>
 
               {/* Match reasons breakdown */}
-              <div style={{ background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: '14px', padding: '1rem' }}>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-                  ✨ Why AI Matched You With This Home
+              <div style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius)', padding: '1rem' }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                  Why this home matched
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   {selectedMatch.match_reasons.map((r, idx) => (
-                    <div key={idx} style={{ fontSize: '0.85rem', color: '#15803d', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span>✓</span>
-                      <span>{r}</span>
+                    <div key={idx} style={{ fontSize: '0.85rem', color: 'var(--color-text)', fontWeight: 500 }}>
+                      {r}
                     </div>
                   ))}
                 </div>
@@ -323,56 +302,52 @@ const MatchResults = () => {
 
               {/* About Establishment */}
               <div>
-                <h3 style={{ fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: '0.5rem' }}>
-                  About the Establishment & Mission
+                <h3 style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                  About the mission
                 </h3>
-                <p style={{ margin: 0, fontSize: '0.92rem', color: '#334155', lineHeight: 1.6, background: '#f8fafc', padding: '1rem 1.1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--color-text)', lineHeight: 1.6, background: 'var(--color-bg)', padding: '1rem 1.1rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--color-border)' }}>
                   {selectedMatch.institution.cause_description}
                 </p>
               </div>
 
               {/* Address */}
               <div>
-                <h3 style={{ fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: '0.5rem' }}>
-                  Location & Address
+                <h3 style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                  Location
                 </h3>
-                <div style={{ fontSize: '0.88rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>🏢</span>
-                  <span>{selectedMatch.institution.address}</span>
+                <div style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
+                  {selectedMatch.institution.address}
                 </div>
               </div>
 
               {/* Contact info */}
-              <div style={{ background: '#f1f5f9', borderRadius: '14px', padding: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                <h3 style={{ fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569', margin: 0 }}>
-                  Establishment Contact Details
-                </h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', fontSize: '0.85rem' }}>
-                  {selectedMatch.institution.contact_email && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <a href={`mailto:${selectedMatch.institution.contact_email}`} style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
+              {(selectedMatch.institution.contact_email || selectedMatch.institution.contact_phone) && (
+                <div style={{ background: 'var(--color-bg)', borderRadius: 'var(--border-radius)', padding: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', border: '1px solid var(--color-border)' }}>
+                  <h3 style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', margin: 0 }}>
+                    Contact
+                  </h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', fontSize: '0.85rem' }}>
+                    {selectedMatch.institution.contact_email && (
+                      <a href={`mailto:${selectedMatch.institution.contact_email}`} style={{ color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 600 }}>
                         {selectedMatch.institution.contact_email}
                       </a>
-                    </div>
-                  )}
-                  {selectedMatch.institution.contact_phone && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span>📞</span>
-                      <a href={`tel:${selectedMatch.institution.contact_phone}`} style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
+                    )}
+                    {selectedMatch.institution.contact_phone && (
+                      <a href={`tel:${selectedMatch.institution.contact_phone}`} style={{ color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 600 }}>
                         {selectedMatch.institution.contact_phone}
                       </a>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Actions */}
               <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.5rem' }}>
                 <button
                   onClick={() => setSelectedMatch(null)}
                   style={{
-                    flex: 1, padding: '0.8rem', borderRadius: '12px', border: '1.5px solid #cbd5e1',
-                    background: '#fff', color: '#475569', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+                    flex: 1, padding: '0.8rem', borderRadius: 'var(--border-radius)', border: '1.5px solid var(--color-border)',
+                    background: 'var(--color-surface)', color: 'var(--color-text)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
                   }}
                 >
                   Close
@@ -380,13 +355,12 @@ const MatchResults = () => {
                 <button
                   onClick={() => handleSupport(selectedMatch.institution)}
                   style={{
-                    flex: 2, padding: '0.8rem', borderRadius: '12px', border: 'none',
-                    background: 'linear-gradient(135deg, #2D9CDB 0%, #1d4ed8 100%)',
+                    flex: 2, padding: '0.8rem', borderRadius: 'var(--border-radius)', border: 'none',
+                    background: 'var(--color-accent)',
                     color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(45,156,219,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                   }}
                 >
-                  <span>Connect & Support Home</span>
+                  Support this home
                 </button>
               </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchInstitutions } from '../services/api';
 import { useToast } from '../components/ToastProvider';
 import SupportModal from '../components/SupportModal';
+import { getPlaceholderTileColor } from '../utils/placeholderTile';
 
 const Dashboard = () => {
   const [institutions, setInstitutions] = useState([]);
@@ -21,11 +22,10 @@ const Dashboard = () => {
 
   useEffect(() => { load(); }, [district]);
 
-  const getUrgencyColor = (days) => {
-    if (days > 90) return '#ef4444';
-    if (days > 45) return '#f97316';
-    if (days > 14) return '#eab308';
-    return '#22c55e';
+  const getUrgencyLabel = (days) => {
+    if (days == null) return null;
+    if (days > 90) return { text: `Updated ${days}d ago`, color: '#b45309' };
+    return { text: `Updated ${days}d ago`, color: 'var(--color-text-muted)' };
   };
 
   // Use the institution's own uploaded photo when it has one; otherwise show
@@ -58,11 +58,11 @@ const Dashboard = () => {
         }
       `}</style>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.4rem', letterSpacing: '-0.02em' }}>
-          Registered Orphanage Homes
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, color: 'var(--color-text)', margin: '0 0 0.4rem' }}>
+          Registered orphanage homes
         </h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.92rem', margin: 0 }}>
-          Tap on any orphanage card to view its establishment profile, facility photo, mission, and direct contact info.
+          Select a home to view its profile, mission, and contact details.
         </p>
       </div>
 
@@ -78,7 +78,7 @@ const Dashboard = () => {
             flex: 1,
             minWidth: '220px',
             padding: '0.75rem 1.1rem',
-            borderRadius: '12px',
+            borderRadius: 'var(--border-radius)',
             border: '1.5px solid var(--color-border)',
             background: 'var(--color-surface)',
             color: 'var(--color-text)',
@@ -92,7 +92,7 @@ const Dashboard = () => {
           onChange={(e) => setDistrict(e.target.value)}
           style={{
             padding: '0.75rem 1.1rem',
-            borderRadius: '12px',
+            borderRadius: 'var(--border-radius)',
             border: '1.5px solid var(--color-border)',
             background: 'var(--color-surface)',
             color: 'var(--color-text)',
@@ -114,7 +114,7 @@ const Dashboard = () => {
       <div className="orphanage-grid">
         {institutions.map((inst) => {
           const img = getHomeImage(inst);
-          const urgencyColor = getUrgencyColor(inst.urgency_days_since_donation);
+          const urgency = getUrgencyLabel(inst.days_since_funding_update ?? inst.urgency_days_since_donation);
 
           return (
             <div
@@ -123,61 +123,49 @@ const Dashboard = () => {
               style={{
                 background: 'var(--color-surface)',
                 border: '1.5px solid var(--color-border)',
-                borderRadius: '18px',
+                borderRadius: 'var(--border-radius)',
                 overflow: 'hidden',
                 cursor: 'pointer',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+                transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
                 display: 'flex',
                 flexDirection: 'column',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                boxShadow: '0 1px 3px rgba(36,31,29,0.06)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 12px 28px rgba(45,156,219,0.15)';
-                e.currentTarget.style.borderColor = '#2D9CDB';
+                e.currentTarget.style.borderColor = 'var(--color-primary)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(36,31,29,0.08)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.04)';
                 e.currentTarget.style.borderColor = 'var(--color-border)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(36,31,29,0.06)';
               }}
             >
               {/* Home Photo */}
               <div style={{
                 position: 'relative', height: '160px', width: '100%', overflow: 'hidden',
-                background: inst.image_url ? '#e2e8f0' : '#f7f1ea',
+                background: inst.image_url ? 'var(--color-border)' : getPlaceholderTileColor(inst.id || inst.name),
                 display: inst.image_url ? 'block' : 'flex',
                 alignItems: 'center', justifyContent: 'center',
+                borderBottom: '1px solid var(--color-border)',
               }}>
                 <img
                   src={img}
                   alt={inst.name}
                   style={inst.image_url
                     ? { width: '100%', height: '100%', objectFit: 'cover' }
-                    : { width: '64px', height: '64px', objectFit: 'contain', borderRadius: '12px' }
+                    : { width: '56px', height: '56px', objectFit: 'contain' }
                   }
                   onError={(e) => { e.target.src = '/logo.png'; }}
                 />
-                <div style={{
-                  position: 'absolute', top: '10px', right: '10px',
-                  background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(6px)',
-                  color: '#fff', fontSize: '0.7rem', fontWeight: 700,
-                  padding: '4px 10px', borderRadius: '99px',
-                }}>
-                  {inst.district}
-                </div>
-                <div style={{
-                  position: 'absolute', bottom: '10px', left: '10px',
-                  background: urgencyColor, color: '#fff', fontSize: '0.68rem', fontWeight: 700,
-                  padding: '3px 8px', borderRadius: '6px',
-                }}>
-                  {inst.days_since_funding_update ?? inst.urgency_days_since_donation ?? 0}d since update
-                </div>
               </div>
 
               {/* Card Body */}
               <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--color-primary)', fontWeight: 600 }}>{inst.district}</span>
+                    {urgency && <span style={{ fontSize: '0.7rem', color: urgency.color }}>{urgency.text}</span>}
+                  </div>
                   <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text)', margin: '0 0 0.4rem', lineHeight: 1.3 }}>
                     {inst.name}
                   </h2>
@@ -190,19 +178,15 @@ const Dashboard = () => {
                 <div>
                   <div style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '0.6rem 0.8rem', background: '#f8fafc', borderRadius: '10px',
-                    fontSize: '0.78rem', marginBottom: '0.85rem', border: '1px solid #e2e8f0',
+                    padding: '0.6rem 0.8rem', background: 'var(--color-bg)', borderRadius: 'var(--border-radius)',
+                    fontSize: '0.78rem', marginBottom: '0.85rem', border: '1px solid var(--color-border)',
                   }}>
                     <span><strong>{inst.children_count}</strong> children</span>
-                    <span style={{ color: '#d97706', fontWeight: 700 }}>GHS {Number(inst.funding_gap).toLocaleString()} gap</span>
+                    <span style={{ color: '#b45309', fontWeight: 700 }}>GHS {Number(inst.funding_gap).toLocaleString()} gap</span>
                   </div>
 
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
-                    color: '#2D9CDB', fontSize: '0.8rem', fontWeight: 700,
-                  }}>
-                    <span>View Home Profile & Photos</span>
-                    <span>➔</span>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-accent)' }}>
+                    View home profile
                   </div>
                 </div>
               </div>
@@ -225,8 +209,8 @@ const Dashboard = () => {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: '#ffffff',
-              borderRadius: '24px',
+              background: 'var(--color-surface)',
+              borderRadius: 'var(--border-radius)',
               maxWidth: '620px',
               width: '100%',
               maxHeight: '90vh',
@@ -271,17 +255,11 @@ const Dashboard = () => {
                 background: 'linear-gradient(to top, rgba(15,23,42,0.85) 0%, transparent 60%)',
               }} />
               <div style={{ position: 'absolute', bottom: '16px', left: '20px', right: '20px', color: '#fff' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '6px', flexWrap: 'wrap' }}>
-                  <span style={{ background: '#2D9CDB', padding: '3px 10px', borderRadius: '99px', fontSize: '0.72rem', fontWeight: 700 }}>
-                    {selectedInst.district}
-                  </span>
-                  {selectedInst.established_year && (
-                    <span style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)', padding: '3px 10px', borderRadius: '99px', fontSize: '0.72rem', fontWeight: 700 }}>
-                      Est. {selectedInst.established_year}
-                    </span>
-                  )}
+                <div style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: '4px' }}>
+                  {selectedInst.district}
+                  {selectedInst.established_year && ` · Est. ${selectedInst.established_year}`}
                 </div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
                   {selectedInst.name}
                 </h2>
               </div>
@@ -292,77 +270,73 @@ const Dashboard = () => {
               
               {/* Quick stats grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
-                <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '14px', padding: '0.9rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0369a1' }}>{selectedInst.children_count}</div>
-                  <div style={{ fontSize: '0.72rem', color: '#0284c7', textTransform: 'uppercase', fontWeight: 700, marginTop: '2px' }}>Children in Care</div>
+                <div style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius)', padding: '0.9rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)' }}>{selectedInst.children_count}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>Children in care</div>
                 </div>
-                <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '14px', padding: '0.9rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#b45309' }}>GHS {Number(selectedInst.funding_gap).toLocaleString()}</div>
-                  <div style={{ fontSize: '0.72rem', color: '#d97706', textTransform: 'uppercase', fontWeight: 700, marginTop: '2px' }}>Funding Gap</div>
+                <div style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius)', padding: '0.9rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>GHS {Number(selectedInst.funding_gap).toLocaleString()}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>Funding gap</div>
                 </div>
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px', padding: '0.9rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#15803d' }}>{selectedInst.days_since_funding_update ?? selectedInst.urgency_days_since_donation ?? 0}d</div>
-                  <div style={{ fontSize: '0.72rem', color: '#16a34a', textTransform: 'uppercase', fontWeight: 700, marginTop: '2px' }}>Days Since Update</div>
+                <div style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius)', padding: '0.9rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>{selectedInst.days_since_funding_update ?? selectedInst.urgency_days_since_donation ?? 0}d</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>Since update</div>
                 </div>
               </div>
 
               {/* Mission & About */}
               <div>
-                <h3 style={{ fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: '0.5rem' }}>
-                  About the Establishment & Mission
+                <h3 style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                  About the mission
                 </h3>
-                <p style={{ margin: 0, fontSize: '0.92rem', color: '#334155', lineHeight: 1.6, background: '#f8fafc', padding: '1rem 1.1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--color-text)', lineHeight: 1.6, background: 'var(--color-bg)', padding: '1rem 1.1rem', borderRadius: 'var(--border-radius)', border: '1px solid var(--color-border)' }}>
                   {selectedInst.cause_description}
                 </p>
               </div>
 
               {/* Location & Address */}
               <div>
-                <h3 style={{ fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: '0.5rem' }}>
-                  Physical Location
+                <h3 style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                  Location
                 </h3>
-                <div style={{ fontSize: '0.88rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>🏢</span>
-                  <span>{selectedInst.address}</span>
+                <div style={{ fontSize: '0.88rem', color: 'var(--color-text)' }}>
+                  {selectedInst.address}
                 </div>
                 {selectedInst.gps_lat && (
-                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
-                    GPS Coordinates: {selectedInst.gps_lat}, {selectedInst.gps_lng} (Kumasi region)
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                    {selectedInst.gps_lat}, {selectedInst.gps_lng}
                   </div>
                 )}
               </div>
 
               {/* Contact Information */}
-              <div style={{ background: '#f1f5f9', borderRadius: '14px', padding: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                <h3 style={{ fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569', margin: 0 }}>
-                  Establishment Contact Details
-                </h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', fontSize: '0.85rem' }}>
-                  {selectedInst.contact_email && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <a href={`mailto:${selectedInst.contact_email}`} style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
+              {(selectedInst.contact_email || selectedInst.contact_phone) && (
+                <div style={{ background: 'var(--color-bg)', borderRadius: 'var(--border-radius)', padding: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', border: '1px solid var(--color-border)' }}>
+                  <h3 style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', margin: 0 }}>
+                    Contact
+                  </h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', fontSize: '0.85rem' }}>
+                    {selectedInst.contact_email && (
+                      <a href={`mailto:${selectedInst.contact_email}`} style={{ color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 600 }}>
                         {selectedInst.contact_email}
                       </a>
-                    </div>
-                  )}
-                  {selectedInst.contact_phone && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span>📞</span>
-                      <a href={`tel:${selectedInst.contact_phone}`} style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
+                    )}
+                    {selectedInst.contact_phone && (
+                      <a href={`tel:${selectedInst.contact_phone}`} style={{ color: 'var(--color-accent)', textDecoration: 'none', fontWeight: 600 }}>
                         {selectedInst.contact_phone}
                       </a>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Action buttons */}
               <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.5rem' }}>
                 <button
                   onClick={() => setSelectedInst(null)}
                   style={{
-                    flex: 1, padding: '0.8rem', borderRadius: '12px', border: '1.5px solid #cbd5e1',
-                    background: '#fff', color: '#475569', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+                    flex: 1, padding: '0.8rem', borderRadius: 'var(--border-radius)', border: '1.5px solid var(--color-border)',
+                    background: 'var(--color-surface)', color: 'var(--color-text)', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
                   }}
                 >
                   Close
@@ -370,13 +344,12 @@ const Dashboard = () => {
                 <button
                   onClick={() => handleSupport(selectedInst)}
                   style={{
-                    flex: 2, padding: '0.8rem', borderRadius: '12px', border: 'none',
-                    background: 'linear-gradient(135deg, #2D9CDB 0%, #1d4ed8 100%)',
+                    flex: 2, padding: '0.8rem', borderRadius: 'var(--border-radius)', border: 'none',
+                    background: 'var(--color-accent)',
                     color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(45,156,219,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                   }}
                 >
-                  <span>Connect & Support Home</span>
+                  Support this home
                 </button>
               </div>
 
