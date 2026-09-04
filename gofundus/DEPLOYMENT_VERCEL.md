@@ -1,47 +1,21 @@
-# Deploying GoFundUs to Vercel
+# Deploying the GoFundUs Frontend to Vercel
 
-GoFundUs can be hosted on Vercel with two separate linked projects (Frontend + Backend) or deployed via GitHub.
-
----
-
-## 1. Backend Deployment (Django + Neon PostgreSQL)
-
-### Option A: Using Vercel Web Dashboard
-1. Go to [vercel.com/new](https://vercel.com/new) and import your repository.
-2. Under **Root Directory**, click **Edit** and select **`backend`**.
-3. Framework Preset: **Other**.
-4. Add the following **Environment Variables**:
-   - `DATABASE_URL`: `<your-Neon-PostgreSQL-connection-string>`
-   - `DJANGO_SECRET_KEY`: `<your-production-secret-key>`
-   - `DJANGO_DEBUG`: `False`
-   - `DJANGO_ALLOWED_HOSTS`: `.vercel.app`
-   - `CORS_ALLOWED_ORIGINS`: `https://<your-frontend-project>.vercel.app`
-   - `CSRF_TRUSTED_ORIGINS`: `https://<your-frontend-project>.vercel.app,https://*.vercel.app`
-5. Click **Deploy**.
-6. Note down your backend URL (e.g., `https://gofundus-api.vercel.app`).
-
-### Option B: Using Vercel CLI
-```bash
-cd backend
-vercel
-# Follow the interactive prompts, select backend root directory
-vercel --prod
-```
+The backend runs on Render (see `DEPLOYMENT_RENDER.md`) — Vercel hosts the frontend only, as one dedicated project.
 
 ---
 
-## 2. Frontend Deployment (React + Vite SPA)
+## 1. Frontend Deployment (React + Vite SPA)
 
-### Frontend Vercel project
-Use one dedicated Vercel project for the frontend.
-
-1. Open the Vercel project **Settings > General > Root Directory**.
-2. Set Root Directory to **`frontend`** and save it.
-3. Framework Preset: **Vite**. The committed `frontend/vercel.json` defines the install command, build command, and output directory.
-4. Add the following **Environment Variables**:
-   - `VITE_API_URL`: `https://<your-backend-project>.vercel.app/api`
+1. [vercel.com/new](https://vercel.com/new) → import the repository.
+2. Open the Vercel project **Settings > General > Root Directory**.
+3. Set Root Directory to **`frontend`** and save it.
+4. Framework Preset: **Vite**. The committed `frontend/vercel.json` defines the install command, build command, and output directory.
+5. Add the following **Environment Variables**:
+   - `VITE_API_URL`: `https://gofundus-api.onrender.com/api`
    - `VITE_PAYSTACK_PUBLIC_KEY`: `pk_live_...` (or `pk_test_...` for testing)
-5. Click **Deploy** or trigger a redeploy.
+   - `VITE_CLOUDINARY_CLOUD_NAME` / `VITE_CLOUDINARY_UPLOAD_PRESET`: for profile photo uploads
+   - `VITE_FIREBASE_API_KEY` / `VITE_FIREBASE_AUTH_DOMAIN` / `VITE_FIREBASE_PROJECT_ID` / `VITE_FIREBASE_STORAGE_BUCKET` / `VITE_FIREBASE_MESSAGING_SENDER_ID` / `VITE_FIREBASE_APP_ID`: for Google sign-in
+6. Click **Deploy** or trigger a redeploy.
 
 ### Using Vercel CLI
 ```bash
@@ -52,15 +26,15 @@ vercel --prod
 
 ---
 
-## 3. Post-Deployment Verification Checklist
-- [ ] Visit `https://<your-backend-project>.vercel.app/api/institutions/` — should return list of institutions from Neon DB.
-- [ ] Visit `https://<your-frontend-project>.vercel.app` — test Login (`chris` / `chris123` or `admin` / `GoFundUs@2026`).
+## 2. Post-Deployment Verification Checklist
+- [ ] Visit `https://gofundus-api.onrender.com/api/institutions/` — should return the list of institutions from Neon DB.
+- [ ] Visit your frontend's Vercel URL — test Login (`chris` / `chris123` or `admin` / `GoFundUs@2026`).
 - [ ] Test AI Matchmaker query on the live frontend.
 - [ ] Verify Support ticket submission and Paystack donation modal.
 
-## 4. Institution Data Synchronization
+## 3. Institution Data Synchronization
 
-The Hong Kong test files and synthetic institution generator have been removed. To update the admin database with the currently verified Ghana dataset, run from `backend`:
+To update the database with the currently verified Ghana dataset, run from `backend` (via Render's dashboard, since there's no local database access by default):
 
 ```bash
 python manage.py sync_ashanti_institutions
@@ -68,10 +42,8 @@ python manage.py sync_ashanti_institutions
 
 This replaces all existing institution records, including test records. The current records are limited to organizations documented by [Light for Children](https://www.lightforchildren.com/orphanages), [SOS Children's Villages](https://www.sos-childrensvillages.org/where-we-help/africa/ghana/kumasi), [Kumasi Children's Home](https://kumasichildrenshome.mogcsp.gov.gh/), and [Osu Children's Home](https://osuchildrenshome.gov.gh/). The UNICEF/MoGCSP mapping identified 115 homes nationally in 2016; this fixture is not presented as a complete current registry. Children counts, funding gaps, emails, and phone numbers are left unconfirmed until supplied by the institutions or Ghana social welfare authorities.
 
-For a local demonstration with visible child counts, funding gaps, needs, dates, and Kumasi map points, run:
+For a demo with 5 real, verified Kumasi institutions plus 5 clearly-fictional placeholder records (broadened need-category coverage for testing the AI matcher), run:
 
 ```bash
-python manage.py seed_kumasi_mock_data
+python manage.py seed_ghana_demo_institutions
 ```
-
-This replaces the institution table with 20 synthetic records. They are labeled as demo data and must not be presented as real homes or real operational figures.
