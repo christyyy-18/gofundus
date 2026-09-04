@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
 import { apiFetch } from '../services/api';
-import { BadgeDollarSign, BookOpen, CheckCircle, CircleHelp, FileText, Handshake, HardHat, Home, Mail, Package, Pencil, ShieldCheck, Target, Users, Wallet, X } from 'lucide-react';
+import { BadgeDollarSign, BookOpen, CheckCircle, CircleHelp, FileText, Handshake, HardHat, Home, Mail, Package, Pencil, Search, ShieldCheck, Target, Users, Wallet, X } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
@@ -354,7 +354,7 @@ function FundingTab({ username, institutionId, addToast }) {
       {/* Add button */}
       <div style={s.card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <SectionTitle icon="📑">Funding & Donation Log</SectionTitle>
+          <SectionTitle icon={BadgeDollarSign}>Funding & Donation Log</SectionTitle>
           <button onClick={() => setShowForm(v => !v)} style={s.btnPrimary}>
             {showForm ? 'Cancel' : 'Add Entry'}
           </button>
