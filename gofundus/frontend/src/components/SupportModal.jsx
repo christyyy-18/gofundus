@@ -122,6 +122,11 @@ export default function SupportModal({ institution, onClose }) {
         padding: '1.5rem',
       }}
     >
+      <style>{`
+        @media (max-width: 420px) {
+          .support-modal-row2 { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {paymentOpen && (
         <div style={s.paymentExit}>
           <button type="button" onClick={closePayment} aria-label="Close payment window" style={s.paymentExitButton}>
@@ -247,7 +252,7 @@ export default function SupportModal({ institution, onClose }) {
 
               {!anonymous && (
                 <>
-                  <div style={s.row2}>
+                  <div style={s.row2} className="support-modal-row2">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                       <label style={s.label}>Your Name *</label>
                       <input style={s.input} value={donorName} onChange={e => setDonorName(e.target.value)} placeholder="Full name" required={!anonymous} />

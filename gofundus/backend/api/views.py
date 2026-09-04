@@ -1,6 +1,6 @@
 import math
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -22,6 +22,8 @@ class InstitutionViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in {'list', 'retrieve'}:
             return [AllowAny()]
+        if self.action == 'mine':
+            return [IsAuthenticated()]
         return [IsInstitutionOwnerOrSystemAdmin()]
 
     def get_queryset(self):
@@ -33,6 +35,14 @@ class InstitutionViewSet(viewsets.ModelViewSet):
         if search:
             queryset = queryset.filter(cause_description__icontains=search) | queryset.filter(name__icontains=search)
         return queryset
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def mine(self, request):
+        """Return the institution linked to the logged-in institution admin."""
+        institution = Institution.objects.filter(user=request.user).first()
+        if not institution:
+            return Response({"error": "No institution linked to this account."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(InstitutionSerializer(institution).data)
 
 
 class InterestStatementViewSet(viewsets.ModelViewSet):
@@ -217,6 +227,19 @@ def register_user(request):
     UserProfile.objects.create(user=user, role=role)
     if role == 'donor':
         Donor.objects.create(user=user)
+    elif role == 'institution_admin' and institution_name:
+        Institution.objects.create(
+            user=user,
+            name=institution_name,
+            district=request.data.get('district', 'Kumasi Metropolitan').strip() or 'Kumasi Metropolitan',
+            address=request.data.get('address', '').strip(),
+            cause_description=request.data.get('cause_description', '').strip() or 'Description pending.',
+            gps_lat=request.data.get('gps_lat') or 6.6885,
+            gps_lng=request.data.get('gps_lng') or -1.6244,
+            children_count=request.data.get('children_count') or 0,
+            contact_email=request.data.get('contact_email', email or '').strip() or None,
+            contact_phone=request.data.get('contact_phone', '').strip() or None,
+        )
 
     login(request, user)
 

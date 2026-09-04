@@ -45,15 +45,11 @@ export default function OrphanagePortal() {
     }
     setUser(u);
 
-    // Fetch institution linked to this user
-    fetch(`${API}/institutions/`, { credentials: 'include' })
-      .then(r => r.json())
-      .then(list => {
-        // Try to find institution with matching username, otherwise use first as demo
-        const matched = Array.isArray(list)
-          ? (list.find(i => i.user === u.id || i.user === u.username) || list[0])
-          : null;
-        setInst(matched || null);
+    // Fetch the institution linked to this specific admin account
+    fetch(`${API}/institutions/mine/`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(inst => {
+        setInst(inst || null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -62,9 +58,24 @@ export default function OrphanagePortal() {
   if (loading) return <Loader />;
 
   return (
-    <div style={s.page}>
+    <div style={s.page} className="orphanage-page">
+      <style>{`
+        @media (max-width: 900px) {
+          .orphanage-page { flex-direction: column !important; }
+          .orphanage-sidebar {
+            width: 100% !important; min-width: 0 !important; height: auto !important;
+            position: relative !important; padding: 0.75rem 1rem !important;
+          }
+          .orphanage-sidebar-nav {
+            flex-direction: row !important; overflow-x: auto !important; flex: none !important;
+          }
+          .orphanage-sidebar-nav button { width: auto !important; white-space: nowrap !important; }
+          .orphanage-topbar { padding: 1rem !important; }
+          .orphanage-tab-content { padding: 1rem !important; }
+        }
+      `}</style>
       {/* ── Sidebar ── */}
-      <aside style={s.sidebar}>
+      <aside style={s.sidebar} className="orphanage-sidebar">
         {/* Brand */}
         <div style={s.sidebarBrand}>
           <div style={s.sidebarLogo}><Home size={20} /></div>
@@ -77,7 +88,7 @@ export default function OrphanagePortal() {
         <div style={s.sidebarDivider} />
 
         {/* Nav links */}
-        <nav style={s.sidebarNav}>
+        <nav style={s.sidebarNav} className="orphanage-sidebar-nav">
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -112,7 +123,7 @@ export default function OrphanagePortal() {
       {/* ── Content ── */}
       <main style={s.content}>
         {/* Top bar */}
-        <div style={s.topBar}>
+        <div style={s.topBar} className="orphanage-topbar">
           <div>
             <h1 style={s.topBarTitle}>{TABS.find(t => t.id === activeTab)?.label}</h1>
             <p style={s.topBarSub}>GoFundUs · Orphanage Admin Portal</p>
@@ -123,7 +134,7 @@ export default function OrphanagePortal() {
         </div>
 
         {/* Tab content */}
-        <div style={s.tabContent}>
+        <div style={s.tabContent} className="orphanage-tab-content">
           {activeTab === 'profile'  && <ProfileTab  institution={institution} setInst={setInst} addToast={addToast} user={user} />}
           {activeTab === 'funding'  && <FundingTab  username={user?.username} institutionId={institution?.id} addToast={addToast} />}
           {activeTab === 'donors'   && <DonorsTab   username={user?.username} addToast={addToast} />}

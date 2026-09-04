@@ -81,6 +81,11 @@ const Register = () => {
 
   return (
     <div style={s.page}>
+      <style>{`
+        @media (max-width: 480px) {
+          .register-card { padding: 1.75rem 1.25rem !important; }
+        }
+      `}</style>
       {/* Subtle background pattern */}
       <div style={s.bgDecor} />
 
@@ -92,7 +97,7 @@ const Register = () => {
         </div>
 
         {/* Card */}
-        <div style={s.card}>
+        <div style={s.card} className="register-card">
 
           {/* Photo upload */}
           <div style={s.avatarSection}>

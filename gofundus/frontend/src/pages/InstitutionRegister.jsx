@@ -91,6 +91,11 @@ export default function InstitutionRegister() {
           role: 'institution_admin',
           first_name: adminName,
           institution_name: orgName,
+          district,
+          address,
+          contact_email: contactEmail,
+          contact_phone: contactPhone,
+          children_count: Number(childrenCount) || 0,
         }),
       });
       const data = await res.json();
@@ -124,6 +129,12 @@ export default function InstitutionRegister() {
 
   return (
     <div style={s.page}>
+      <style>{`
+        @media (max-width: 480px) {
+          .institution-register-card { padding: 1.75rem 1.25rem !important; }
+          .institution-register-row2 { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Subtle background */}
       <div style={s.bgLeft} />
 
@@ -149,7 +160,7 @@ export default function InstitutionRegister() {
 
         {/* ─── STEP 1 — Institution ─── */}
         {step === 1 && (
-          <div style={s.card}>
+          <div style={s.card} className="institution-register-card">
             <h2 style={s.cardTitle}>Tell us about your orphanage</h2>
             <p style={s.cardSub}>
               All fields are required. Only officially registered orphanages may join.
@@ -168,7 +179,7 @@ export default function InstitutionRegister() {
                 />
               </Field>
 
-              <div style={s.row2}>
+              <div style={s.row2} className="institution-register-row2">
                 <Field label="Type of Organisation" required>
                   <select id="org-type" style={s.input} value={orgType} onChange={e => setOrgType(e.target.value)} required>
                     <option value="">Select type…</option>
@@ -214,7 +225,7 @@ export default function InstitutionRegister() {
                 </div>
               </div>
 
-              <div style={s.row2}>
+              <div style={s.row2} className="institution-register-row2">
                 <Field label="Institution Contact Email" required>
                   <input
                     id="contact-email"
@@ -277,7 +288,7 @@ export default function InstitutionRegister() {
 
         {/* ─── STEP 2 — Admin account ─── */}
         {step === 2 && (
-          <div style={s.card}>
+          <div style={s.card} className="institution-register-card">
             <button onClick={() => setStep(1)} style={s.backBtn}>← Back</button>
             <h2 style={s.cardTitle}>Create your admin account</h2>
             <p style={s.cardSub}>
@@ -286,7 +297,7 @@ export default function InstitutionRegister() {
 
             <form onSubmit={handleSubmit} style={s.form}>
 
-              <div style={s.row2}>
+              <div style={s.row2} className="institution-register-row2">
                 <Field label="Your Full Name" required>
                   <input
                     id="admin-name"

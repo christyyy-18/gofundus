@@ -65,8 +65,23 @@ const Login = () => {
 
   return (
     <div style={styles.page}>
-      <div style={styles.shell}>
-        <div style={styles.brandPanel}>
+      <style>{`
+        @media (max-width: 900px) {
+          .login-shell { flex-direction: column; min-height: 0 !important; }
+          .login-brand-panel { padding: 24px 20px !important; }
+          .login-hero-block { height: auto !important; padding: 12px 0 !important; }
+          .login-form-panel { width: 100% !important; min-width: 0 !important; padding: 16px !important; }
+          .login-program-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
+        @media (max-width: 480px) {
+          .login-hero-title { font-size: 2.4rem !important; }
+          .login-card { padding: 24px 20px !important; }
+          .login-card-hero-row { flex-direction: column !important; }
+          .login-image-stack { width: 100% !important; margin: 0 !important; }
+        }
+      `}</style>
+      <div style={styles.shell} className="login-shell">
+        <div style={styles.brandPanel} className="login-brand-panel">
           <div style={styles.brandGlow1} />
           <div style={styles.brandGlow2} />
 
@@ -78,10 +93,10 @@ const Login = () => {
             </div>
           </div>
 
-          <div style={styles.heroBlock}>
+          <div style={styles.heroBlock} className="login-hero-block">
             <div style={styles.heroTextWrap}>
               <div style={styles.kicker}>Precision • transparency • impact</div>
-              <h1 style={styles.heroTitle}>Smart giving to Ghanaian orphanages.</h1>
+              <h1 style={styles.heroTitle} className="login-hero-title">Smart giving to Ghanaian orphanages.</h1>
               <p style={styles.heroText}>
                 Our AI connects donors with verified orphanages, matching funding to real needs with complete transparency and measurable outcomes.
               </p>
@@ -111,12 +126,12 @@ const Login = () => {
                 </div>
               </div>
 
-              <div style={styles.cardHeroRow}>
+              <div style={styles.cardHeroRow} className="login-card-hero-row">
                 <div style={styles.textStack}>
                   <p style={styles.cardTitleLarge}>Smart<br />donor<br />matching<br />in Kumasi</p>
                 </div>
 
-                <div style={styles.imageStack}>
+                <div style={styles.imageStack} className="login-image-stack">
                   <div style={styles.imageBack} />
                   <div style={styles.imageFrame}>
                     <img
@@ -133,7 +148,7 @@ const Login = () => {
 
               <div style={styles.programCard}>
                 <div style={styles.programHeader}>Verified Needs</div>
-                <div style={styles.programGrid}>
+                <div style={styles.programGrid} className="login-program-grid">
                   {[
                     ['Education', 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=900&q=80'],
                     ['Healthcare', 'https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=80'],
@@ -155,8 +170,8 @@ const Login = () => {
           </div>
         </div>
 
-        <div style={styles.formPanel}>
-          <div style={styles.card}>
+        <div style={styles.formPanel} className="login-form-panel">
+          <div style={styles.card} className="login-card">
             <div style={styles.cardBadge}>AI-powered matching</div>
             <h2 style={styles.cardTitle}>Welcome back</h2>
             <p style={styles.cardSub}>Sign in to match with Ghanaian orphanages and fund verified community needs.</p>
