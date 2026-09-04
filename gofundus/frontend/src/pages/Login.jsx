@@ -207,7 +207,7 @@ const Login = () => {
               </p>
               <p style={{ margin: 0 }}>
                 Orphanage admin?{' '}
-                <Link to="/register-institution" style={{ ...styles.link, color: '#234d45' }}>Register charity</Link>
+                <Link to="/register-institution" style={{ ...styles.link, color: '#234d45' }}>Register orphanage</Link>
               </p>
             </div>
           </div>
